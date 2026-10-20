@@ -245,7 +245,8 @@ export const KOKKINI_PISTA_ROUTES = [
     settersRawEn: 'D. Titopoulos 2017',
     setters: ['Δ. Τιτόπουλος'],
     year: 2017,
-    defaultStars: 3,
+    defaultStars: 4,
+    isClassic: true,
     noteGr: 'Σύγχρονη τεχνική γραμμή του 2017 ανάμεσα στην #1 και το Πλακάκι.',
     noteEn: 'Modern technical face route bolted in 2017 between #1 and Plakaki.',
     svgPath: [
@@ -460,7 +461,8 @@ export const KOKKINI_PISTA_ROUTES = [
     settersRawEn: 'M. Idosidis - ? 1960',
     setters: ['Μ. Ιδοσίδης'],
     year: 1960,
-    defaultStars: 3,
+    defaultStars: 4,
+    isClassic: true,
     noteGr:
       'Η ιστορικότερη διαδρομή της Κόκκινης Πίστας! Πρωτοσκαρφαλώθηκε το 1960 από τον Πρόδρομο (Μάκη) Ιδοσίδη από τη χαρακτηριστική στέγη (στον οδηγό του 1991 είχε αναφερθεί εκ παραδρομής στους Δ. Στραβογένη – Μ. Χατζή). Πριν το 2017 είχε βρεθεί καρφωμένη με βύσματα από άγνωστους αναρριχητές.',
     noteEn:
@@ -652,7 +654,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '5b',
     length: 12,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Χρ Κουνιάκης - P Bailey 1990',
     settersRawEn: 'Chr. Kouniakis - P. Bailey 1990',
@@ -660,9 +662,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'ΠΡΟΣΟΧΗ: Διαδρομή με κίτρινο χρώμα (Top rope*) — δεν ασφαλίστηκε λόγω ποιότητας βράχου και ΔΕΝ έχει μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).',
+      'ΠΡΟΣΟΧΗ: Διαδρομή με κίτρινο χρώμα (Top Rope*) — δεν ασφαλίστηκε λόγω ποιότητας βράχου και ΔΕΝ έχει μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).',
     noteEn:
-      'WARNING: Yellow line (Top rope*) — left unbolted due to rock quality and has NO permanent anchor (build an anchor on trees above or with nuts/friends).',
+      'WARNING: Yellow line (Top Rope*) — left unbolted due to rock quality and has NO permanent anchor (build an anchor on trees above or with nuts/friends).',
     svgPath: [
       [78.4, 78.5],
       [78.2, 66.0],
@@ -1101,7 +1103,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '6a',
     length: 7,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Χρ Κουνιάκης - P Bailey 1990',
     settersRawEn: 'Chr. Kouniakis - P. Bailey 1990',
@@ -1109,9 +1111,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'ΠΡΟΣΟΧΗ: Διαδρομή με κίτρινο χρώμα (Top rope*) — δεν ασφαλίστηκε λόγω ακαταλληλότητας βράχου/μικρού ύψους και ΔΕΝ έχει μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).',
+      'ΠΡΟΣΟΧΗ: Διαδρομή με κίτρινο χρώμα (Top Rope*) — δεν ασφαλίστηκε λόγω ακαταλληλότητας βράχου/μικρού ύψους και ΔΕΝ έχει μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).',
     noteEn:
-      'WARNING: Yellow line (Top rope*) — unbolted due to rock suitability/short height and has NO permanent anchor (rig on trees above or with nuts/friends).',
+      'WARNING: Yellow line (Top Rope*) — unbolted due to rock suitability/short height and has NO permanent anchor (rig on trees above or with nuts/friends).',
     svgPath: [
       [58.4, 59.5],
       [57.8, 52.0],
@@ -1295,8 +1297,8 @@ export const KOKKINI_PISTA_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'P. Bailey'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Τελευταία σπορ διαδρομή με μόνιμο ρελέ πριν τις 5 top-rope γραμμές.',
-    noteEn: 'Last bolted sport route with a permanent anchor before the 5 top-rope lines.',
+    noteGr: 'Τελευταία σπορ διαδρομή με μόνιμο ρελέ πριν τις 5 Top Rope γραμμές.',
+    noteEn: 'Last bolted sport route with a permanent anchor before the 5 Top Rope lines.',
     svgPath: [
       [91.2, 57.5],
       [91.1, 49.0],
@@ -1317,7 +1319,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '5c',
     length: 5,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Δ Τιτόπουλος - P Bailey 1990',
     settersRawEn: 'D. Titopoulos - P. Bailey 1990',
@@ -1325,9 +1327,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'ΠΡΟΣΟΧΗ: Σύντομη διαδρομή 5μ με κίτρινο χρώμα (Top rope*) — δεν ασφαλίστηκε λόγω μικρού ύψους και ΔΕΝ έχει μόνιμο ρελέ (ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).',
+      'ΠΡΟΣΟΧΗ: Σύντομη διαδρομή 5μ με κίτρινο χρώμα (Top Rope*) — δεν ασφαλίστηκε λόγω μικρού ύψους και ΔΕΝ έχει μόνιμο ρελέ (ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).',
     noteEn:
-      'WARNING: Short 5m yellow line (Top rope*) — unbolted due to short height and has NO permanent anchor (rig on trees above or with nuts/friends).',
+      'WARNING: Short 5m yellow line (Top Rope*) — unbolted due to short height and has NO permanent anchor (rig on trees above or with nuts/friends).',
     svgPath: [
       [92.9, 37.0],
       [92.7, 30.0],
@@ -1349,7 +1351,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '6a',
     length: 5,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Δ Τιτόπουλος - P Bailey 1990',
     settersRawEn: 'D. Titopoulos - P. Bailey 1990',
@@ -1357,9 +1359,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'ΠΡΟΣΟΧΗ: Διαδρομή 5μ με κίτρινο χρώμα (Top rope*) — χωρίς μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ή καρύδια/friends).',
+      'ΠΡΟΣΟΧΗ: Διαδρομή 5μ με κίτρινο χρώμα (Top Rope*) — χωρίς μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ή καρύδια/friends).',
     noteEn:
-      'WARNING: 5m yellow line (Top rope*) — no permanent anchor (rig on trees above or with nuts/friends).',
+      'WARNING: 5m yellow line (Top Rope*) — no permanent anchor (rig on trees above or with nuts/friends).',
     svgPath: [
       [94.7, 36.8],
       [94.5, 30.0],
@@ -1381,7 +1383,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '5a',
     length: 6,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Δ Τιτόπουλος - P Bailey 1990',
     settersRawEn: 'D. Titopoulos - P. Bailey 1990',
@@ -1389,9 +1391,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'Η πιο εύκολη γραμμή του τομέα (V- / 5a), μόνο Top-Rope (χωρίς μόνιμο ρελέ — ασφάλιση σε δεντράκια ή καρύδια/friends).',
+      'Η πιο εύκολη γραμμή του τομέα (V- / 5a), μόνο Top Rope (χωρίς μόνιμο ρελέ — ασφάλιση σε δεντράκια ή καρύδια/friends).',
     noteEn:
-      'The easiest grade in the sector (V- / 5a), Top-Rope only (no permanent anchor — rig on trees or nuts/friends).',
+      'The easiest grade in the sector (V- / 5a), Top Rope only (no permanent anchor — rig on trees or nuts/friends).',
     svgPath: [
       [95.3, 38.0],
       [96.1, 31.0],
@@ -1413,7 +1415,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '5c',
     length: 6,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Δ Τιτόπουλος - P Bailey 1990',
     settersRawEn: 'D. Titopoulos - P. Bailey 1990',
@@ -1421,9 +1423,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'ΠΡΟΣΟΧΗ: Διαδρομή 6μ με κίτρινο χρώμα (Top rope*) — χωρίς μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ή καρύδια/friends).',
+      'ΠΡΟΣΟΧΗ: Διαδρομή 6μ με κίτρινο χρώμα (Top Rope*) — χωρίς μόνιμο ρελέ (φτιάξτε ρελέ σε δεντράκια ή καρύδια/friends).',
     noteEn:
-      'WARNING: 6m yellow line (Top rope*) — no permanent anchor (rig on trees or nuts/friends).',
+      'WARNING: 6m yellow line (Top Rope*) — no permanent anchor (rig on trees or nuts/friends).',
     svgPath: [
       [97.0, 39.2],
       [97.1, 34.0],
@@ -1445,7 +1447,7 @@ export const KOKKINI_PISTA_ROUTES = [
     french: '5b',
     length: 7,
     bolts: 0,
-    protectionRaw: 'Top rope*',
+    protectionRaw: 'Top Rope*',
     isTopRopeOnly: true,
     settersRawGr: 'Δ Τιτόπουλος - P Bailey 1990',
     settersRawEn: 'D. Titopoulos - P. Bailey 1990',
@@ -1453,9 +1455,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 1,
     noteGr:
-      'Δεξιότερη διαδρομή της Κόκκινης Πίστας (#33), μόνο Top-Rope (χωρίς μόνιμο ρελέ — ρελέ σε δεντράκια ή καρύδια/friends).',
+      'Δεξιότερη διαδρομή της Κόκκινης Πίστας (#33), μόνο Top Rope (χωρίς μόνιμο ρελέ — ρελέ σε δεντράκια ή καρύδια/friends).',
     noteEn:
-      'Far-right route of Kokkini Pista (#33), Top-Rope only (no permanent anchor — rig on trees or nuts/friends).',
+      'Far-right route of Kokkini Pista (#33), Top Rope only (no permanent anchor — rig on trees or nuts/friends).',
     svgPath: [
       [99.3, 39.5],
       [99.5, 32.0],

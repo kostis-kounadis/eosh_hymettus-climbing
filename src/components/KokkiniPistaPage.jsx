@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -64,14 +64,24 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [activeWall, setActiveWall] = useState(1);
   const [selectedRoute, setSelectedRoute] = useState(null);
-  const [gradeSystem, setGradeSystem] = useState('french'); // 'french' | 'uiaa'
-  const [viewMode, setViewMode] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth >= 960 ? 'table' : 'cards'
-  );
   const [isExpandedSize, setIsExpandedSize] = useState(false);
   const [logbookModalOpen, setLogbookModalOpen] = useState(false);
   const [approachDrawerOpen, setApproachDrawerOpen] = useState(false);
   const [infoDrawerOpen, setInfoDrawerOpen] = useState(false);
+  const stickyHeaderRef = useRef(null);
+  const [stickyTopOffset, setStickyTopOffset] = useState(0);
+
+  useEffect(() => {
+    const el = stickyHeaderRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const update = () => {
+      setStickyTopOffset(el.offsetHeight);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Live Side-by-Side Layout Switcher (Default Layout B, or ?layout=a)
   const layoutVariant = searchParams.get('layout') === 'a' ? 'a' : 'b';
@@ -159,14 +169,115 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
     setSearchParams(nextParams, { replace: true });
   };
 
-  const handleSelectRoute = (route) => {
+  const handleSelectRoute = (route, options = {}) => {
     setSelectedRoute(route);
     const nextParams = new URLSearchParams(searchParams);
+
     if (route) {
       if (route.wall !== activeWall) {
         setActiveWall(route.wall);
       }
       nextParams.set('route', route.id);
+
+      // Check for any conflicting filters that would hide this route, and reset them
+      setFilters((prev) => {
+        let changed = false;
+        const next = { ...prev };
+
+        // 1. Wall filter
+        if (next.wallFilter !== 'all' && next.wallFilter !== String(route.wall)) {
+          next.wallFilter = 'all';
+          changed = true;
+        }
+
+        // 2. Specific grade selection
+        if (next.selectedGrades.length > 0 && !next.selectedGrades.includes(route.french)) {
+          next.selectedGrades = [];
+          changed = true;
+        }
+
+        // 3. Setter filter
+        if (next.setter !== 'all' && !route.setters.includes(next.setter)) {
+          next.setter = 'all';
+          changed = true;
+        }
+
+        // 4. Year filter
+        if (next.year !== 'all' && String(route.year) !== next.year) {
+          next.year = 'all';
+          changed = true;
+        }
+
+        // 5. Length range
+        if (next.lengthRange === 'short' && route.length > 8) {
+          next.lengthRange = 'all';
+          changed = true;
+        } else if (next.lengthRange === 'medium' && (route.length < 9 || route.length > 11)) {
+          next.lengthRange = 'all';
+          changed = true;
+        } else if (next.lengthRange === 'long' && route.length < 12) {
+          next.lengthRange = 'all';
+          changed = true;
+        }
+
+        // 6. Protection type
+        if (next.protectionType === 'sport' && route.isTopRopeOnly) {
+          next.protectionType = 'all';
+          changed = true;
+        } else if (next.protectionType === 'toprope' && !route.isTopRopeOnly) {
+          next.protectionType = 'all';
+          changed = true;
+        }
+
+        // 7. Stars filter (♫ classic is treated as 4★)
+        const routeStars = route.isClassic ? 4 : (route.defaultStars || 1);
+        if (next.minStars > 0 && routeStars < next.minStars) {
+          next.minStars = 0;
+          changed = true;
+        }
+
+        // 8. Member-only filters
+        if (isMemberOrAdmin) {
+          const entry = getEntry(route.id);
+          if (next.onlyFavourites && !entry.favourite) {
+            next.onlyFavourites = false;
+            changed = true;
+          }
+          if (next.tickFilter !== 'all') {
+            const isCompleted = isCompletedTick(entry.status);
+            if (next.tickFilter === 'completed' && !isCompleted) {
+              next.tickFilter = 'all';
+              changed = true;
+            } else if (next.tickFilter === 'todo' && isCompleted) {
+              next.tickFilter = 'all';
+              changed = true;
+            } else if (
+              !['all', 'completed', 'todo'].includes(next.tickFilter) &&
+              entry.status !== next.tickFilter
+            ) {
+              next.tickFilter = 'all';
+              changed = true;
+            }
+          }
+        }
+
+        return changed ? next : prev;
+      });
+
+      // Smooth scroll to the table row so its main title row lands cleanly below the sticky header
+      if (options.scroll !== false) {
+        setTimeout(() => {
+          const rowEl = document.getElementById(`route-row-${route.id}`);
+          if (rowEl) {
+            const stickyH = stickyHeaderRef.current?.offsetHeight || 0;
+            // Add table header height (~36px) and a small margin (~8px)
+            const totalStickyOffset = stickyH + 44;
+            const rowTopDoc = rowEl.getBoundingClientRect().top + window.scrollY;
+            const targetScroll = Math.max(0, rowTopDoc - totalStickyOffset);
+            window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+          }
+        }, 90);
+      }
     } else {
       nextParams.delete('route');
     }
@@ -493,53 +604,41 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
           >
             {/* LEFT COLUMN (4 cols width) */}
             <div className="lg:col-span-4 space-y-2.5 mb-3 lg:mb-0">
-              {/* Box 1: Single Combined Box for Badges + Title + Crag Intro + Restoration + Helmet (Wildfire) Warning */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-2xs p-3.5 space-y-2.5">
-                <div>
-                  {/* Line 1: 2.A Sector Badge + 2.B Route Count + Dynamic Approach Indicator */}
-                  <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                    <Badge variant="outline" className="text-[11px] bg-gray-50/80 border-gray-200 text-gray-800 font-semibold">
-                      <MapPin className="w-3 h-3 mr-1 text-[#1e3a8a]" />
-                      {isGr ? 'Ηλιούπολη' : 'Ilioupoli'}
-                    </Badge>
-                    <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] hover:bg-[#1e3a8a]/15 border-0 text-[11px] font-bold">
+              {/* Sector Header / Intro directly on light grey background (no white card, matching EOSH site styling) */}
+              <div className="space-y-1.5 mb-2 px-1 sm:px-0">
+                {/* Line 1: Sector Badge + Route Count + Approach Indicator */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="text-[11px] bg-white border-gray-200 text-gray-800 font-semibold shadow-2xs">
+                    <MapPin className="w-3 h-3 mr-1 text-[#1e3a8a]" />
+                    {isGr ? 'Ηλιούπολη' : 'Ilioupoli'}
+                  </Badge>
+                  <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] hover:bg-[#1e3a8a]/15 border-0 text-[11px] font-bold">
+                    {isGr
+                      ? `${cragCounts.total} διαδρομές`
+                      : `${cragCounts.total} routes`}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-[11px] bg-white text-emerald-800 border-emerald-200 font-semibold inline-flex items-center gap-1 shadow-2xs"
+                  >
+                    <Footprints className="w-3 h-3 text-emerald-600" />
+                    <span>
                       {isGr
-                        ? `${cragCounts.total} διαδρομές`
-                        : `${cragCounts.total} routes`}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="text-[11px] bg-emerald-50/70 text-emerald-800 border-emerald-200 font-semibold inline-flex items-center gap-1"
-                    >
-                      <Footprints className="w-3 h-3 text-emerald-600" />
-                      <span>
-                        {isGr
-                          ? `${CRAG_INFO_2018.approachMinutes}′ Πρόσβαση`
-                          : `${CRAG_INFO_2018.approachMinutes}′ Approach`}
-                      </span>
-                    </Badge>
-                  </div>
-
-                  {/* Line 2: 2.E Main Title */}
-                  <h1 className="text-2xl sm:text-[26px] font-extrabold text-gray-900 tracking-tight leading-tight">
-                    {isGr ? 'Κόκκινη Πίστα' : 'Red Crag (Kokkini Pista)'}
-                  </h1>
+                        ? `${CRAG_INFO_2018.approachMinutes}′ Πρόσβαση`
+                        : `${CRAG_INFO_2018.approachMinutes}′ Approach`}
+                    </span>
+                  </Badge>
                 </div>
 
-                {/* Crag Intro Description */}
-                <p className="text-xs text-gray-700 leading-relaxed">
+                {/* Line 2: Main Title (font-bold matching rest of EOSH site) */}
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                  {isGr ? 'Κόκκινη Πίστα' : 'Red Crag (Kokkini Pista)'}
+                </h1>
+
+                {/* Line 3: Crag Intro Description */}
+                <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed pt-0.5">
                   {isGr ? CRAG_INFO_2018.introGr : CRAG_INFO_2018.introEn}
                 </p>
-
-                {/* 2.F Restoration note */}
-                <div className="flex items-start gap-2 pt-2 border-t border-gray-100 text-[11px] text-gray-500 leading-snug">
-                  <Wrench className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0 mt-0.5" />
-                  <span>
-                    {isGr
-                      ? CRAG_INFO_2018.restorationShortGr
-                      : CRAG_INFO_2018.restorationShortEn}
-                  </span>
-                </div>
               </div>
 
               {/* Box 2: 2-Row Compact Quick Specs & Seasonal Shade Box */}
@@ -634,7 +733,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                 isGr={isGr}
                 userMode={userMode}
                 routes={KOKKINI_PISTA_ROUTES}
-                gradeSystem={gradeSystem}
+                gradeSystem="french"
                 selectedGrades={filters.selectedGrades}
                 onToggleGrade={handleToggleGrade}
                 onSelectGradeTier={handleSelectGradeTier}
@@ -655,9 +754,9 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                 >
                   <div className="flex items-center gap-2">
                     <Compass className="w-4 h-4 text-[#1e3a8a]" />
-                    <span className="text-xs font-bold text-gray-900">
+                    <h3 className="text-xs sm:text-sm font-bold text-gray-900">
                       {isGr ? 'Πρόσβαση' : 'Approach'}
-                    </span>
+                    </h3>
                     <span className="text-[11px] text-gray-500 font-medium">
                       ({isGr ? `${CRAG_INFO_2018.approachMinutes}′ πεζοπορία` : `${CRAG_INFO_2018.approachMinutes}′ walk`})
                     </span>
@@ -735,9 +834,9 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                 >
                   <div className="flex items-center gap-2">
                     <Info className="w-4 h-4 text-[#1e3a8a]" />
-                    <span className="text-xs font-bold text-gray-900">
+                    <h3 className="text-xs sm:text-sm font-bold text-gray-900">
                       {isGr ? 'Πληροφορίες' : 'Crag Information'}
-                    </span>
+                    </h3>
                     <span className="text-[11px] text-gray-500 font-medium">
                       ({isGr ? 'Βράχος, Συντήρηση & Ιστορικό' : 'Rock, Rebolting & History'})
                     </span>
@@ -791,67 +890,64 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
               </div>
             </div>
 
-            {/* RIGHT COLUMN (8 cols width): 3 (Topo) -> 4.A (Filter Bar) -> 4.C (Table) */}
-            <div className="lg:col-span-8 min-w-0 space-y-3">
-              {/* 3. Interactive Photo-Topo (Sticky on mobile <1024px, standard flow on desktop inside 8-col right pane) */}
+            {/* RIGHT COLUMN (8 cols width): Sticky [Topo + Filter Bar] stack -> Table */}
+            <div className="lg:col-span-8 min-w-0">
+              {/* Sticky Topo + Filter Bar header stack */}
               <div
-                data-testid="topo-sticky-wrapper"
-                className="topo-sticky-container topo-expanded-desktop"
+                ref={stickyHeaderRef}
+                className="sticky top-0 z-30 bg-gray-50 pt-1 pb-0 space-y-2"
               >
-                <InteractiveTopo
+                <div
+                  data-testid="topo-sticky-wrapper"
+                  className="w-full"
+                >
+                  <InteractiveTopo
+                    isGr={isGr}
+                    userMode={userMode}
+                    routes={KOKKINI_PISTA_ROUTES}
+                    filteredRouteIds={filteredRouteIds}
+                    selectedRoute={selectedRoute}
+                    onSelectRoute={handleSelectRoute}
+                    activeWall={activeWall}
+                    onChangeWall={setActiveWall}
+                    gradeSystem="french"
+                    getEntry={getEntry}
+                    customPaths={customPaths}
+                    onUpdateRoutePath={updateRoutePath}
+                    onResetRoutePath={resetRoutePath}
+                    onToggleFavourite={toggleFavourite}
+                    onToggleTickStatus={toggleTickStatus}
+                    isExpandedSize={isExpandedSize}
+                    onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
+                    onResetFilters={handleResetAllFilters}
+                  />
+                </div>
+
+                {/* 4.A Filter Bar */}
+                <RouteFilterBar
                   isGr={isGr}
                   userMode={userMode}
-                  routes={KOKKINI_PISTA_ROUTES}
-                  filteredRouteIds={filteredRouteIds}
-                  selectedRoute={selectedRoute}
-                  onSelectRoute={handleSelectRoute}
-                  activeWall={activeWall}
-                  onChangeWall={setActiveWall}
-                  gradeSystem={gradeSystem}
-                  getEntry={getEntry}
-                  customPaths={customPaths}
-                  onUpdateRoutePath={updateRoutePath}
-                  onResetRoutePath={resetRoutePath}
-                  onToggleFavourite={toggleFavourite}
-                  onToggleTickStatus={toggleTickStatus}
-                  isExpandedSize={isExpandedSize}
-                  onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
-                  onResetFilters={handleResetAllFilters}
+                  filters={filters}
+                  onChangeFilters={setFilters}
+                  onResetAllFilters={() => setFilters(INITIAL_FILTERS)}
+                  onSelectGradeTier={handleSelectGradeTier}
+                  activeFilterCount={activeFilterCount}
+                  totalCount={KOKKINI_PISTA_ROUTES.length}
+                  filteredCount={filteredRoutes.length}
                 />
               </div>
 
-              {/* 4.A Filter Bar */}
-              <RouteFilterBar
-                isGr={isGr}
-                userMode={userMode}
-                filters={filters}
-                onChangeFilters={setFilters}
-                onResetAllFilters={() => setFilters(INITIAL_FILTERS)}
-                onSelectGradeTier={handleSelectGradeTier}
-                activeFilterCount={activeFilterCount}
-                totalCount={KOKKINI_PISTA_ROUTES.length}
-                filteredCount={filteredRoutes.length}
-                gradeSystem={gradeSystem}
-                onToggleGradeSystem={() =>
-                  setGradeSystem((g) => (g === 'french' ? 'uiaa' : 'french'))
-                }
-                viewMode={viewMode}
-                onChangeViewMode={setViewMode}
-              />
-
               {/* 4.C Route Table */}
               <RouteListAndTable
+                stickyTopOffset={stickyTopOffset}
                 isGr={isGr}
                 userMode={userMode}
                 routes={filteredRoutes}
                 selectedRoute={selectedRoute}
                 onSelectRoute={handleSelectRoute}
-                gradeSystem={gradeSystem}
-                viewMode={viewMode}
                 getEntry={getEntry}
                 onToggleFavourite={toggleFavourite}
                 onToggleTickStatus={toggleTickStatus}
-                onSetStars={setStars}
                 onUpdateEntry={updateEntry}
                 onFilterBySetter={(setter) =>
                   setFilters((p) => ({
@@ -931,7 +1027,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   onSelectRoute={handleSelectRoute}
                   activeWall={activeWall}
                   onChangeWall={setActiveWall}
-                  gradeSystem={gradeSystem}
+                  gradeSystem="french"
                   getEntry={getEntry}
                   customPaths={customPaths}
                   onUpdateRoutePath={updateRoutePath}
@@ -960,19 +1056,13 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   activeFilterCount={activeFilterCount}
                   totalCount={KOKKINI_PISTA_ROUTES.length}
                   filteredCount={filteredRoutes.length}
-                  gradeSystem={gradeSystem}
-                  onToggleGradeSystem={() =>
-                    setGradeSystem((g) => (g === 'french' ? 'uiaa' : 'french'))
-                  }
-                  viewMode={viewMode}
-                  onChangeViewMode={setViewMode}
                 />
 
                 <GradeChartAndStats
                   isGr={isGr}
                   userMode={userMode}
                   routes={KOKKINI_PISTA_ROUTES}
-                  gradeSystem={gradeSystem}
+                  gradeSystem="french"
                   selectedGrades={filters.selectedGrades}
                   onToggleGrade={handleToggleGrade}
                   onSelectGradeTier={handleSelectGradeTier}
@@ -989,12 +1079,9 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   routes={filteredRoutes}
                   selectedRoute={selectedRoute}
                   onSelectRoute={handleSelectRoute}
-                  gradeSystem={gradeSystem}
-                  viewMode={viewMode}
                   getEntry={getEntry}
                   onToggleFavourite={toggleFavourite}
                   onToggleTickStatus={toggleTickStatus}
-                  onSetStars={setStars}
                   onUpdateEntry={updateEntry}
                   onFilterBySetter={(setter) =>
                     setFilters((p) => ({

@@ -99,10 +99,37 @@ export default function InteractiveTopo({
   };
 
   const handleToggleBoxSize = () => {
+    const next = !isExpandedSize;
     if (onToggleExpandedSize) {
       onToggleExpandedSize();
     } else {
-      setInternalExpanded((v) => !v);
+      setInternalExpanded(next);
+    }
+    if (next) {
+      // Zoomed in view when expanding: on mobile fill the tall 75vh container (~2.1x), on desktop 1.45x/1.3x
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+      const targetZoom = isMobile
+        ? (selectedRoute ? 2.1 : 1.85)
+        : (selectedRoute ? 1.45 : 1.3);
+      setZoomLevel(targetZoom);
+      if (selectedRoute) {
+        setTimeout(() => centerOnRoute(selectedRoute, targetZoom), 40);
+      } else {
+        const vp = viewportRef.current;
+        if (vp) {
+          const vw = vp.clientWidth;
+          const vh = vp.clientHeight;
+          const midX = (vw - vw * targetZoom) / 2;
+          const midY = (vh - vh * targetZoom) / 2;
+          setPan(clampPan(midX, midY, targetZoom));
+        } else {
+          setPan({ x: 0, y: 0 });
+        }
+      }
+    } else {
+      // Reset zoom back to 1
+      setZoomLevel(1);
+      setPan({ x: 0, y: 0 });
     }
   };
 
@@ -528,25 +555,9 @@ export default function InteractiveTopo({
     }));
   };
 
-  const handleStepRoute = (delta) => {
-    if (!routes.length) return;
-    const currentIndex = selectedRoute
-      ? routes.findIndex((r) => r.id === selectedRoute.id)
-      : -1;
-    const nextIdx =
-      currentIndex === -1
-        ? 0
-        : (currentIndex + delta + routes.length) % routes.length;
-    const nextRoute = routes[nextIdx];
-    if (nextRoute) {
-      onSelectRoute(nextRoute);
-    }
-  };
-
   const activeImageSrc =
     customWallImages[activeWall] || wallConfig.imageClean;
 
-  const selectedEntry = selectedRoute ? getEntry(selectedRoute.id) : null;
   const formattedZoom = `${Number(zoomLevel.toFixed(1))}×`;
 
   return (
@@ -664,10 +675,10 @@ export default function InteractiveTopo({
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onDoubleClick={handleDoubleClick}
-              className={`relative mx-auto overflow-hidden ${
+              className={`relative mx-auto overflow-hidden transition-[height] duration-300 ${
                 isExpandedSize
-                  ? 'w-full max-w-[1140px]'
-                  : 'w-full sm:max-w-[560px] lg:max-w-full'
+                  ? 'w-full h-[75vh] sm:h-auto max-w-[1140px] sm:max-h-[calc(100vh-280px)]'
+                  : 'w-full max-h-[35vh]'
               } ${
                 zoomLevel > 1.01
                   ? isPanning
@@ -676,7 +687,7 @@ export default function InteractiveTopo({
                   : ''
               }`}
               style={{
-                aspectRatio: `${W} / ${H}`,
+                aspectRatio: isExpandedSize ? undefined : `${W} / ${H}`,
                 touchAction:
                   zoomLevel > 1.01 || (editMode && isAdmin) ? 'none' : 'pan-y',
               }}
@@ -700,8 +711,10 @@ export default function InteractiveTopo({
                   alt={isGr ? wallConfig.titleGr : wallConfig.titleEn}
                   width={W}
                   height={H}
-                  fetchPriority="high"
-                  className={`w-full h-full object-contain block transition-filter duration-200 ${
+                  fetchpriority="high"
+                  className={`w-full h-full ${
+                    isExpandedSize ? 'object-cover' : 'object-contain'
+                  } block transition-filter duration-200 ${
                     selectedRoute ? 'brightness-[0.80] contrast-[1.05]' : 'brightness-95'
                   }`}
                   draggable={false}
@@ -711,7 +724,7 @@ export default function InteractiveTopo({
                 <svg
                   ref={svgRef}
                   viewBox={`0 0 ${W} ${H}`}
-                  preserveAspectRatio="xMidYMid meet"
+                  preserveAspectRatio={isExpandedSize ? "xMidYMid slice" : "xMidYMid meet"}
                   className="absolute inset-0 w-full h-full"
                   onClick={(e) => {
                     if (pointerMovedDistRef.current > 5) return;
@@ -907,48 +920,48 @@ export default function InteractiveTopo({
               <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none z-10" />
 
               {/* 3.A Topo Toolbar (Floating Transparent Overlay directly above photo) */}
-              <div className="absolute top-2 left-2 right-2 sm:top-2.5 sm:left-2.5 sm:right-2.5 z-20 flex items-center justify-between gap-2 pointer-events-none">
-                <div className="flex items-center gap-2 pointer-events-auto min-w-0">
-                  {/* Element 1: Collapsible button ("Πανοραμικό" in GR / "Topo" in EN) */}
+              <div className="absolute top-2 left-2 right-2 sm:top-2.5 sm:left-2.5 sm:right-2.5 z-20 flex items-center justify-between gap-1.5 pointer-events-none">
+                {/* Element 1: Collapsible button ("Πανοραμικό" in GR / "Topo" in EN) */}
+                <button
+                  type="button"
+                  onClick={handleToggleOpen}
+                  className="h-7 px-2.5 inline-flex items-center gap-1 font-semibold text-xs bg-black/45 hover:bg-black/60 text-white border border-white/20 backdrop-blur-md rounded-lg transition-colors shadow-xs pointer-events-auto"
+                  aria-expanded={true}
+                >
+                  <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
+                </button>
+
+                {/* Element 2: Wall Tabs Switcher (Aligned right on mobile, centered/left on desktop) */}
+                <div className="h-7 inline-flex items-center rounded-lg border border-white/20 bg-black/45 backdrop-blur-md p-0.5 text-xs font-semibold shadow-xs pointer-events-auto ml-auto sm:ml-0">
                   <button
                     type="button"
-                    onClick={handleToggleOpen}
-                    className="h-8 px-3.5 inline-flex items-center gap-1.5 font-semibold text-xs bg-white/20 hover:bg-white/30 text-white border border-white/40 backdrop-blur-xs rounded-full transition-colors shadow-sm"
-                    aria-expanded={true}
+                    onClick={() => onChangeWall(1)}
+                    className={`h-6 px-2 sm:px-2.5 rounded-md inline-flex items-center justify-center transition-colors ${
+                      activeWall === 1
+                        ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
+                        : 'text-white/90 hover:text-white font-medium'
+                    }`}
                   >
-                    <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
+                    <span className="sm:hidden">{isGr ? 'Τοίχος 1' : 'Wall 1'}</span>
+                    <span className="hidden sm:inline">{isGr ? 'Τοίχος 1 (1–12)' : 'Wall 1 (1–12)'}</span>
                   </button>
-
-                  {/* Element 2: Wall Tabs Switcher */}
-                  <div className="h-8 inline-flex items-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xs p-0.5 text-xs font-semibold shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => onChangeWall(1)}
-                      className={`h-7 px-2.5 sm:px-3 rounded-full inline-flex items-center justify-center transition-colors ${
-                        activeWall === 1
-                          ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
-                          : 'text-white/90 hover:text-white font-medium'
-                      }`}
-                    >
-                      {isGr ? 'Τοίχος 1 (1–12)' : 'Wall 1 (1–12)'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onChangeWall(2)}
-                      className={`h-7 px-2.5 sm:px-3 rounded-full inline-flex items-center justify-center transition-colors ${
-                        activeWall === 2
-                          ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
-                          : 'text-white/90 hover:text-white font-medium'
-                      }`}
-                    >
-                      {isGr ? 'Τοίχος 2 (13–33)' : 'Wall 2 (13–33)'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onChangeWall(2)}
+                    className={`h-6 px-2 sm:px-2.5 rounded-md inline-flex items-center justify-center transition-colors ${
+                      activeWall === 2
+                        ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
+                        : 'text-white/90 hover:text-white font-medium'
+                    }`}
+                  >
+                    <span className="sm:hidden">{isGr ? 'Τοίχος 2' : 'Wall 2'}</span>
+                    <span className="hidden sm:inline">{isGr ? 'Τοίχος 2 (13–33)' : 'Wall 2 (13–33)'}</span>
+                  </button>
                 </div>
 
-                {/* Right Controls: Element 3 (Make larger/smaller icon) + optional Admin edit */}
-                <div className="flex items-center gap-1.5 pointer-events-auto ml-auto">
+                {/* Right Controls (Desktop Only): Admin edit + Expand/Compact */}
+                <div className="hidden sm:flex items-center gap-1.5 pointer-events-auto sm:ml-auto">
                   {isAdmin && (
                     <button
                       type="button"
@@ -958,18 +971,18 @@ export default function InteractiveTopo({
                           ? 'Επεξεργασία Γραμμών Topo (Admin)'
                           : 'Edit Topo Paths (Admin)'
                       }
-                      className={`h-8 px-2.5 inline-flex items-center gap-1 text-xs rounded-full border transition-colors ${
+                      className={`h-7 px-2.5 inline-flex items-center gap-1 text-xs rounded-lg border transition-colors ${
                         editMode
                           ? 'bg-emerald-400 text-gray-950 font-bold border-emerald-300'
-                          : 'bg-white/20 hover:bg-white/30 text-emerald-200 border-white/40 backdrop-blur-xs'
+                          : 'bg-black/45 hover:bg-black/60 text-emerald-200 border-white/20 backdrop-blur-md'
                       }`}
                     >
                       <Wrench className="w-3 h-3" />
-                      <span className="hidden sm:inline">Admin</span>
+                      <span>Admin</span>
                     </button>
                   )}
 
-                  {/* Element 3: Make larger/smaller icon */}
+                  {/* Desktop Expand / Compact button */}
                   <button
                     type="button"
                     onClick={handleToggleBoxSize}
@@ -983,11 +996,7 @@ export default function InteractiveTopo({
                         ? 'Μεγέθυνση πλαισίου'
                         : 'Expand box size'
                     }
-                    className={`w-8 h-8 rounded-full border backdrop-blur-xs inline-flex items-center justify-center transition-colors shadow-sm ${
-                      isExpandedSize
-                        ? 'border-white/60 bg-white/30 hover:bg-white/40 text-white'
-                        : 'border-white/40 bg-white/20 hover:bg-white/30 text-white'
-                    }`}
+                    className="w-7 h-7 rounded-lg border border-white/20 bg-black/45 hover:bg-black/60 text-white backdrop-blur-md inline-flex items-center justify-center transition-colors shadow-xs"
                   >
                     {isExpandedSize ? (
                       <Minimize2 className="w-3.5 h-3.5 text-white" />
@@ -998,7 +1007,30 @@ export default function InteractiveTopo({
                 </div>
               </div>
 
-              {/* Floating Reset Zoom pill inside viewport corner when zoomed in */}
+              {/* Mobile-Only Bottom-Right Expand / Compact button */}
+              <button
+                type="button"
+                onClick={handleToggleBoxSize}
+                data-testid="topo-box-size-toggle-mobile"
+                title={
+                  isExpandedSize
+                    ? isGr
+                      ? 'Επαναφορά μεγέθους πλαισίου'
+                      : 'Compact box size'
+                    : isGr
+                    ? 'Μεγέθυνση πλαισίου'
+                    : 'Expand box size'
+                }
+                className="sm:hidden absolute bottom-2 right-2 z-20 w-7 h-7 rounded-lg border border-white/20 bg-black/55 hover:bg-black/70 text-white backdrop-blur-md inline-flex items-center justify-center transition-colors shadow-md pointer-events-auto"
+              >
+                {isExpandedSize ? (
+                  <Minimize2 className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <Maximize2 className="w-3.5 h-3.5 text-white" />
+                )}
+              </button>
+
+              {/* Reset Zoom pill: Bottom-Left on Mobile, Bottom-Right on Desktop */}
               {zoomLevel > 1.05 && (
                 <button
                   type="button"
@@ -1007,7 +1039,7 @@ export default function InteractiveTopo({
                     setZoomLevel(1);
                     setPan({ x: 0, y: 0 });
                   }}
-                  className="absolute bottom-2 right-2 z-10 px-2 py-1 rounded-md bg-black/75 hover:bg-black text-white text-[11px] font-semibold backdrop-blur-xs border border-white/20 shadow-md inline-flex items-center gap-1"
+                  className="absolute bottom-2 left-2 sm:left-auto sm:right-2 z-20 h-7 px-2 rounded-lg bg-black/75 hover:bg-black text-white text-[11px] font-semibold backdrop-blur-md border border-white/20 shadow-md inline-flex items-center gap-1 pointer-events-auto"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>1× ({formattedZoom})</span>
@@ -1035,149 +1067,9 @@ export default function InteractiveTopo({
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-3.5 h-0.5 bg-yellow-400 inline-block border-b border-dashed border-yellow-300" />
-                <span className="text-yellow-300 font-medium">Top-rope*</span>
+                <span className="text-yellow-300 font-medium">Top Rope*</span>
               </span>
             </div>
-
-            {/* Selected Route Quick HUD Bar attached to bottom of Topo */}
-            {selectedRoute && (
-              <div
-                className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 border-t flex flex-wrap items-center justify-between gap-2 transition-colors ${
-                  selectedRoute.isTopRopeOnly
-                    ? 'bg-amber-50/60 border-amber-200/70'
-                    : 'bg-white border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <div className="flex items-center">
-                    <button
-                      type="button"
-                      onClick={() => handleStepRoute(-1)}
-                      className="p-1 rounded hover:bg-gray-100 text-gray-600"
-                      title={isGr ? 'Προηγούμενη' : 'Previous'}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleStepRoute(1)}
-                      className="p-1 rounded hover:bg-gray-100 text-gray-600"
-                      title={isGr ? 'Επόμενη' : 'Next'}
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Route # Box - Neutral style matching Table 4.C & _older-version */}
-                  <span
-                    className={`inline-flex items-center justify-center w-[30px] h-6 rounded text-xs font-bold flex-shrink-0 ${
-                      selectedRoute.isTopRopeOnly
-                        ? 'bg-amber-100 text-amber-950 border border-amber-300/80'
-                        : 'bg-gray-100 text-gray-800 border border-gray-200/70'
-                    }`}
-                  >
-                    {selectedRoute.pdfNumber || '—'}
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-xs sm:text-sm text-gray-900 truncate">
-                        {selectedRoute.nameGr !== '-'
-                          ? isGr
-                            ? selectedRoute.nameGr
-                            : selectedRoute.nameEn
-                          : isGr
-                          ? `Διαδρομή #${selectedRoute.pdfNumber}`
-                          : `Route #${selectedRoute.pdfNumber}`}
-                      </span>
-
-                      {/* Grade Boxes: French first / UIAA then, using restored website colors */}
-                      <div className="inline-flex items-center gap-1">
-                        <span
-                          className={`inline-flex items-center justify-center px-2 h-6 rounded text-xs font-bold leading-none ${getGradeBadgeClass(
-                            selectedRoute.french
-                          )}`}
-                        >
-                          {selectedRoute.french}
-                        </span>
-                        <span className="inline-flex items-center justify-center px-2 h-6 rounded text-xs font-semibold leading-none border border-gray-300 text-gray-700 bg-transparent">
-                          {selectedRoute.uiaa}
-                        </span>
-                      </div>
-
-                      <span className="text-xs text-gray-600 font-medium">
-                        {selectedRoute.length}m ·{' '}
-                        {selectedRoute.isTopRopeOnly ? (
-                          <span className="text-amber-700 font-semibold inline-flex items-center gap-0.5">
-                            <AlertTriangle className="w-3 h-3" /> Top rope*
-                          </span>
-                        ) : (
-                          `${selectedRoute.bolts} ${isGr ? 'ασφ.' : 'bolts'}`
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right side of HUD: Member Fav/Tick buttons + Un-highlight X button */}
-                <div className="flex items-center gap-1">
-                  {isMemberOrAdmin && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => onToggleFavourite(selectedRoute.id)}
-                        className={`p-1 rounded border transition-colors ${
-                          selectedEntry?.favourite
-                            ? 'bg-rose-50 border-rose-200 text-rose-600'
-                            : 'bg-white border-gray-200 text-gray-400 hover:text-rose-500'
-                        }`}
-                        title={isGr ? 'Αγαπημένη' : 'Favourite'}
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 ${
-                            selectedEntry?.favourite
-                              ? 'fill-rose-500 text-rose-500'
-                              : ''
-                          }`}
-                        />
-                      </button>
-                      {TICK_TYPES.slice(0, 3).map((t) => {
-                        const active = selectedEntry?.status === t.id;
-                        return (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() =>
-                              onToggleTickStatus(selectedRoute.id, t.id)
-                            }
-                            className={`px-1.5 py-0.5 rounded text-[11px] font-bold border transition-colors ${
-                              active
-                                ? t.color
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
-                            }`}
-                            title={isGr ? t.labelGr : t.labelEn}
-                          >
-                            {active && <Check className="w-2.5 h-2.5 inline mr-0.5" />}
-                            {t.short}
-                          </button>
-                        );
-                      })}
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => onSelectRoute(null)}
-                    className="ml-1 px-2 py-0.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold inline-flex items-center gap-0.5"
-                    title={isGr ? 'Εμφάνιση όλων' : 'Show all'}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">
-                      {isGr ? 'Όλες' : 'All'}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

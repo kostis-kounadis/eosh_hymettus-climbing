@@ -110,7 +110,9 @@ export default function GradeChartAndStats({
   const [mobileExpanded, setMobileExpanded] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   );
-  const [histogramOpen, setHistogramOpen] = useState(true);
+  const [histogramOpen, setHistogramOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  );
   const [showCragGuideNotes, setShowCragGuideNotes] = useState(false);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
@@ -208,28 +210,12 @@ export default function GradeChartAndStats({
         >
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-[#1e3a8a] flex-shrink-0" />
-            <div>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">
-                {isGr ? 'Κατανομή Βαθμολογιών' : 'Grade Distribution'}
-              </h3>
-              {!histogramOpen && (
-                <p className="text-[11px] text-gray-500">
-                  {routes.length} {isGr ? 'διαδρομές (5a – 7a)' : 'routes (5a – 7a)'}
-                </p>
-              )}
-            </div>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+              {isGr ? 'Κατανομή Βαθμολογιών' : 'Grade Distribution'}
+            </h3>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Mini stacked pill preview */}
-            <div className="flex items-center gap-0.5 w-16 h-2 rounded-full overflow-hidden bg-gray-100">
-              <div className="h-full bg-green-500" style={{ flex: bandCounts.easy }} />
-              <div className="h-full bg-amber-500" style={{ flex: bandCounts.medium }} />
-              <div className="h-full bg-rose-500" style={{ flex: bandCounts.hard }} />
-              {bandCounts.extreme > 0 && (
-                <div className="h-full bg-zinc-900" style={{ flex: bandCounts.extreme }} />
-              )}
-            </div>
+          <div className="flex items-center">
             {histogramOpen ? (
               <ChevronUp className="w-4 h-4 text-gray-500" />
             ) : (
@@ -660,8 +646,8 @@ export default function GradeChartAndStats({
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <span>
                       {isGr
-                        ? 'Κράνος απαραίτητο! Οι 7 κίτρινες γραμμές (Top rope*) δεν έχουν μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).'
-                        : 'Helmet mandatory! The 7 yellow lines (Top rope*) have no permanent lower-off (rig on trees or nuts/friends).'}
+                        ? 'Κράνος απαραίτητο! Οι 7 κίτρινες γραμμές (Top Rope*) δεν έχουν μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).'
+                        : 'Helmet mandatory! The 7 yellow lines (Top Rope*) have no permanent lower-off (rig on trees or nuts/friends).'}
                     </span>
                   </div>
                   <button

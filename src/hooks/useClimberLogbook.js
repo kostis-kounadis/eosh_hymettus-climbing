@@ -33,8 +33,8 @@ export const TICK_TYPES = [
   },
   {
     id: 'toprope',
-    labelGr: 'Top-Rope (TR)',
-    labelEn: 'Top-Rope (TR)',
+    labelGr: 'Top Rope (TR)',
+    labelEn: 'Top Rope (TR)',
     short: 'TR',
     color: 'bg-sky-600 text-white border-sky-700',
     badgeLight: 'bg-sky-50 text-sky-800 border-sky-300',

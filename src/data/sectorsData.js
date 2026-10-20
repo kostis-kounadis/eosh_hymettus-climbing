@@ -11,7 +11,7 @@ export const sectors = [
     shadeEn: 'Shaded morning to 14:00',
     shadeGr: 'Σκιά πρωί έως 14:00',
     descEn: 'Compact wall above Karea Monastery, ideal for top-roping. Several historic routes opened by Idosidis–Martzoukos in 1963.',
-    descGr: 'Συμπαγής τοίχος πάνω από τη Μονή Καρέα, ιδανικός για top-rope. Πολλές ιστορικές διαδρομές του Ιδοσίδη–Μαρτζούκου το 1963.',
+    descGr: 'Συμπαγής τοίχος πάνω από τη Μονή Καρέα, ιδανικός για Top Rope. Πολλές ιστορικές διαδρομές του Ιδοσίδη–Μαρτζούκου το 1963.',
     available: false,
   },
   {
