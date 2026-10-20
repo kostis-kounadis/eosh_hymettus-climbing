@@ -505,27 +505,58 @@ export default function RouteListAndTable({
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-2.5 px-2.5 text-center">
+                  <th className="py-2.5 px-1.5 text-center whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => handleSort('length')}
                       className="inline-flex items-center gap-1 hover:text-[#1e3a8a]"
+                      title={
+                        isGr
+                          ? 'Ανάπτυγμα (μήκος / ύψος διαδρομής σε μέτρα)'
+                          : 'Route Length (in meters)'
+                      }
                     >
-                      <span>{isGr ? 'Ανάπτυγμα' : 'Length'}</span>
+                      <abbr
+                        className="no-underline cursor-help"
+                        title={
+                          isGr
+                            ? 'Ανάπτυγμα (μήκος / ύψος διαδρομής σε μέτρα)'
+                            : 'Route Length (in meters)'
+                        }
+                      >
+                        {isGr ? 'Ανάπτ.' : 'Length'}
+                      </abbr>
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-2.5 px-2.5 text-center">
+                  <th className="py-2.5 px-1.5 text-center whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => handleSort('bolts')}
                       className="inline-flex items-center gap-1 hover:text-[#1e3a8a]"
+                      title={
+                        isGr
+                          ? 'Ασφάλειες (αριθμός πλακετών / Top-Rope)'
+                          : 'Protection (bolts count / Top-Rope)'
+                      }
                     >
-                      <span>{isGr ? 'Ασφάλειες' : 'Protection'}</span>
+                      <abbr
+                        className="no-underline cursor-help"
+                        title={
+                          isGr
+                            ? 'Ασφάλειες (αριθμός πλακετών / Top-Rope)'
+                            : 'Protection / Bolts'
+                        }
+                      >
+                        {isGr ? 'Ασφ.' : 'Bolts'}
+                      </abbr>
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="py-2.5 px-3">
+                  <th
+                    className="py-2.5 px-3 text-center"
+                    title={isGr ? 'Ανοίξαντες διαδρομής' : 'Route Setters'}
+                  >
                     {isGr ? 'Ανοίξαντες' : 'Route Setters'}
                   </th>
                   <th className="py-2.5 px-2.5 text-center">
@@ -622,35 +653,61 @@ export default function RouteListAndTable({
                       </td>
 
                       {/* Length */}
-                      <td className="py-2 px-2.5 text-center text-gray-700">
+                      <td
+                        className="py-2 px-1.5 text-center text-gray-700 whitespace-nowrap"
+                        title={
+                          isGr
+                            ? `Ανάπτυγμα: ${route.length}m`
+                            : `Length: ${route.length}m`
+                        }
+                      >
                         {route.length}m
                       </td>
 
-                      {/* Protection */}
-                      <td className="py-2 px-2.5 text-center">
+                      {/* Protection / Bolts */}
+                      <td className="py-2 px-1.5 text-center whitespace-nowrap">
                         {route.isTopRopeOnly ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold text-xs border border-amber-300">
-                            Top rope*
+                          <span
+                            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300 cursor-help"
+                            title={
+                              isGr
+                                ? 'Top-Rope* (χωρίς ενδιάμεσες ασφάλειες και χωρίς μόνιμο ρελέ)'
+                                : 'Top-Rope* (no intermediate bolts, no fixed anchor)'
+                            }
+                          >
+                            TR*
                           </span>
                         ) : (
-                          <span className="font-medium text-gray-800">
+                          <span
+                            className="font-medium text-gray-800"
+                            title={
+                              isGr
+                                ? `Ασφάλειες: ${route.bolts} πλακέτες`
+                                : `Protection: ${route.bolts} bolts`
+                            }
+                          >
                             {route.bolts}
                           </span>
                         )}
                       </td>
 
-                      {/* Setters */}
+                      {/* Setters (Center Aligned, Line Break Between Setters) */}
                       <td
-                        className="py-2 px-3 text-gray-700"
+                        className="py-2 px-3 text-center text-gray-700"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-col items-center justify-center gap-0.5 leading-snug">
                           {route.setters.map((s) => (
                             <button
                               key={s}
                               type="button"
                               onClick={() => onFilterBySetter(s)}
-                              className="text-xs text-[#1e3a8a] hover:underline font-medium"
+                              className="text-xs text-[#1e3a8a] hover:underline font-medium text-center whitespace-nowrap"
+                              title={
+                                isGr
+                                  ? `Φιλτράρισμα ανά ανοίξαντα: ${s}`
+                                  : `Filter by setter: ${s}`
+                              }
                             >
                               {s}
                             </button>
