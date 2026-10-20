@@ -104,11 +104,13 @@ export default function GradeChartAndStats({
   onClearGrades,
   getEntry,
   onOpenLogbookModal,
+  histogramOnly = false,
 }) {
   // Compact on mobile: collapsed by default on small viewports (<768px), open on desktop
   const [mobileExpanded, setMobileExpanded] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   );
+  const [histogramOpen, setHistogramOpen] = useState(true);
   const [showCragGuideNotes, setShowCragGuideNotes] = useState(false);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
@@ -194,6 +196,173 @@ export default function GradeChartAndStats({
       sent: 'bg-zinc-950/60',
     },
   };
+
+  if (histogramOnly) {
+    return (
+      <Card className="border border-gray-200 bg-white overflow-hidden shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setHistogramOpen((v) => !v)}
+          className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-gray-50/70 transition-colors"
+          aria-expanded={histogramOpen}
+        >
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-[#1e3a8a] flex-shrink-0" />
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                {isGr ? 'Κατανομή Βαθμολογιών' : 'Grade Distribution'}
+              </h3>
+              {!histogramOpen && (
+                <p className="text-[11px] text-gray-500">
+                  {routes.length} {isGr ? 'διαδρομές (5a – 7a)' : 'routes (5a – 7a)'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Mini stacked pill preview */}
+            <div className="flex items-center gap-0.5 w-16 h-2 rounded-full overflow-hidden bg-gray-100">
+              <div className="h-full bg-green-500" style={{ flex: bandCounts.easy }} />
+              <div className="h-full bg-amber-500" style={{ flex: bandCounts.medium }} />
+              <div className="h-full bg-rose-500" style={{ flex: bandCounts.hard }} />
+              {bandCounts.extreme > 0 && (
+                <div className="h-full bg-zinc-900" style={{ flex: bandCounts.extreme }} />
+              )}
+            </div>
+            {histogramOpen ? (
+              <ChevronUp className="w-4 h-4 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            )}
+          </div>
+        </button>
+
+        {histogramOpen && (
+          <CardContent className="px-3.5 pb-2.5 pt-2 border-t border-gray-100">
+            {/* 4-Band Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1 mb-2">
+              {GRADE_BANDS.map((band) => {
+                const count = bandCounts[band.id] || 0;
+                const disabled = count === 0;
+                return (
+                  <button
+                    key={band.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onSelectGradeTier(band.id)}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-opacity ${
+                      band.bgSolid
+                    } ${
+                      disabled
+                        ? 'opacity-35 cursor-not-allowed'
+                        : 'hover:opacity-90 cursor-pointer'
+                    }`}
+                    title={`${isGr ? band.nameGr : band.nameEn}: ${
+                      gradeSystem === 'uiaa' ? band.labelUiaa : band.labelFr
+                    }`}
+                  >
+                    {gradeSystem === 'uiaa' ? band.labelUiaa : band.labelFr} ({count})
+                  </button>
+                );
+              })}
+              {selectedGrades.length > 0 && (
+                <button
+                  type="button"
+                  onClick={onClearGrades}
+                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  {isGr ? 'Όλες' : 'Reset'}
+                </button>
+              )}
+            </div>
+
+            {/* Bars Grid (~15% shorter) */}
+            <div className="grid grid-cols-10 gap-1 items-end h-[92px] pt-2.5 pb-1 px-0.5 border-b border-gray-100">
+              {gradeStats.map((g) => {
+                const isSelected = selectedGrades.includes(g.french);
+                const isDimmed = selectedGrades.length > 0 && !isSelected;
+                const heightPct = Math.max(
+                  12,
+                  Math.round((g.total / maxCount) * 100)
+                );
+                const sentPct =
+                  isMemberOrAdmin && g.total > 0
+                    ? Math.round((g.completed / g.total) * 100)
+                    : 0;
+                const colors = barColors[g.tier] || barColors.medium;
+
+                return (
+                  <button
+                    key={g.french}
+                    type="button"
+                    onClick={() => onToggleGrade(g.french)}
+                    className={`group flex flex-col items-center justify-end h-full focus:outline-none transition-opacity ${
+                      isDimmed ? 'opacity-30 hover:opacity-75' : 'opacity-100'
+                    }`}
+                    title={`${g.french} (${g.uiaa}): ${g.total} ${
+                      isGr ? 'διαδρομές' : 'routes'
+                    }`}
+                  >
+                    <span
+                      className={`text-[10px] font-bold mb-0.5 ${
+                        isSelected ? 'text-[#1e3a8a] scale-110' : 'text-gray-700'
+                      }`}
+                    >
+                      {isMemberOrAdmin && g.completed > 0
+                        ? `${g.completed}/${g.total}`
+                        : g.total}
+                    </span>
+
+                    <div
+                      className={`w-full max-w-[24px] rounded-t-md relative overflow-hidden transition-all duration-200 ${
+                        isSelected ? colors.active : colors.base
+                      }`}
+                      style={{ height: `${heightPct}%` }}
+                    >
+                      {sentPct > 0 && (
+                        <div
+                          className={`absolute bottom-0 inset-x-0 ${colors.sent} transition-all`}
+                          style={{ height: `${sentPct}%` }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* X-axis Labels (French + UIAA) */}
+            <div className="grid grid-cols-10 gap-1 pt-1.5 text-center">
+              {gradeStats.map((g) => {
+                const isSelected = selectedGrades.includes(g.french);
+                return (
+                  <button
+                    key={g.french}
+                    type="button"
+                    onClick={() => onToggleGrade(g.french)}
+                    className={`flex flex-col items-center rounded py-0.5 transition-colors ${
+                      isSelected
+                        ? 'bg-[#1e3a8a]/10 text-[#1e3a8a]'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-gray-900 leading-tight">
+                      {gradeSystem === 'uiaa' ? g.uiaa.split(' ')[0] : g.french}
+                    </span>
+                    <span className="text-[9px] text-gray-500 leading-tight">
+                      {gradeSystem === 'uiaa' ? g.french : g.uiaa.split(' ')[0]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        )}
+      </Card>
+    );
+  }
 
   return (
     <div className="mb-3">
@@ -465,9 +634,9 @@ export default function GradeChartAndStats({
                   /* Public Guest View: Purely informative crag summary */
                   <div className="grid grid-cols-3 gap-1.5 text-center">
                     <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">
-                      <div className="text-xs font-bold text-gray-900">33 (40)</div>
+                      <div className="text-xs font-bold text-gray-900">{routes.length}</div>
                       <div className="text-[9px] text-gray-500">
-                        {isGr ? 'Σπορ (Σύνολο)' : 'Sport (Total)'}
+                        {isGr ? 'Διαδρομές' : 'Routes'}
                       </div>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">

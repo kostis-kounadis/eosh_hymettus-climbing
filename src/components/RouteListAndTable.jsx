@@ -455,11 +455,24 @@ export default function RouteListAndTable({
             );
           })}
           {/* Footnote */}
-          <div className="px-3 py-2 bg-amber-50/70 text-[11px] text-amber-900">
-            *{' '}
-            {isGr
-              ? 'ΠΡΟΣΟΧΗ: Όλες οι διαδρομές που γίνονται με σχοινί από πάνω (top rope) και ξεχωρίζουν με κίτρινο χρώμα, δεν έχουν μόνιμο ρελέ.'
-              : 'WARNING: All routes climbed with a top rope and marked in yellow do not have a permanent lower-off anchor.'}
+          <div className="px-3 py-2.5 bg-amber-50/80 text-[11px] text-amber-950 leading-relaxed border-t border-amber-200/80 space-y-1.5">
+            <div>
+              <span className="font-bold">* {isGr ? 'ΠΡΟΣΟΧΗ:' : 'WARNING:'}</span>{' '}
+              {isGr
+                ? 'Οι 7 κίτρινες γραμμές (Α1–Α4, Δ1–Δ3) είναι αποκλειστικά Top-Rope ή Trad (χωρίς ενδιάμεσες ασφάλειες) και δεν έχουν μόνιμο ρελέ (δημιουργία ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).'
+                : 'The 7 yellow lines (A1–A4, D1–D3) are strictly Top-Rope or Trad (no intermediate bolts) and do not have a permanent lower-off anchor (anchor on trees above or with nuts/cams).'}
+            </div>
+            <div className="pt-1.5 border-t border-amber-200/60 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">
+                  {isGr ? 'Κράνος απαραίτητο!' : 'Helmet mandatory!'}
+                </span>{' '}
+                {isGr
+                  ? 'Λόγω των πυρκαγιών (1999 & 2015) είχαν αποκολληθεί φλοίδες βράχου — παρά τον εκτεταμένο καθαρισμό σαθρών το 2017, η χρήση κράνους είναι απαραίτητη πάντα και παντού.'
+                  : 'Due to the 1999 & 2015 wildfires, rock flakes had detached — despite extensive loose-rock cleaning in 2017, wearing a helmet is mandatory at all times.'}
+              </div>
+            </div>
           </div>
         </Card>
       ) : (
@@ -737,11 +750,26 @@ export default function RouteListAndTable({
             </table>
           </div>
           {/* Footnote from PDF */}
-          <div className="px-4 py-2 bg-amber-50/70 border-t border-amber-200/70 text-xs text-amber-900">
-            *{' '}
-            {isGr
-              ? 'ΠΡΟΣΟΧΗ: Όλες οι διαδρομές που γίνονται με σχοινί από πάνω (top rope) και ξεχωρίζουν με κίτρινο χρώμα, δεν έχουν μόνιμο ρελέ.'
-              : 'WARNING: All routes climbed with a top rope and marked in yellow do not have a permanent lower-off anchor.'}
+          <div className="px-4 py-3 bg-amber-50/80 border-t border-amber-200/80 text-xs text-amber-950 leading-relaxed space-y-1.5">
+            <div>
+              <span className="font-bold">
+                * {isGr ? 'ΠΡΟΣΟΧΗ:' : 'WARNING:'}
+              </span>{' '}
+              {isGr
+                ? 'Οι 7 κίτρινες γραμμές (Α1–Α4, Δ1–Δ3) είναι αποκλειστικά Top-Rope ή Trad (χωρίς ενδιάμεσες ασφάλειες) και δεν έχουν μόνιμο ρελέ (δημιουργία ρελέ σε δεντράκια ψηλά ή με καρύδια/friends).'
+                : 'The 7 yellow lines (A1–A4, D1–D3) are strictly Top-Rope or Trad (no intermediate bolts) and do not have a permanent lower-off anchor (anchor on trees above or with nuts/cams).'}
+            </div>
+            <div className="pt-1.5 border-t border-amber-200/60 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">
+                  {isGr ? 'Κράνος απαραίτητο!' : 'Helmet mandatory!'}
+                </span>{' '}
+                {isGr
+                  ? 'Λόγω των πυρκαγιών (1999 & 2015) είχαν αποκολληθεί φλοίδες βράχου — παρά τον εκτεταμένο καθαρισμό σαθρών το 2017, η χρήση κράνους είναι απαραίτητη πάντα και παντού.'
+                  : 'Due to the 1999 & 2015 wildfires, rock flakes had detached — despite extensive loose-rock cleaning in 2017, wearing a helmet is mandatory at all times.'}
+              </div>
+            </div>
           </div>
         </Card>
       )}

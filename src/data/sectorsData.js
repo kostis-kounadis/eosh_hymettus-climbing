@@ -48,7 +48,7 @@ export const sectors = [
     nameGr: 'Κόκκινη Πίστα',
     area: 'Ilioupoli',
     areaGr: 'Ηλιούπολη',
-    routes: 33,
+    routes: 40,
     totalLines: 40,
     grades: 'V – VIII',
     shadeEn: 'Shaded morning + 11:00 onwards',

@@ -160,6 +160,18 @@ export const KOKKINI_WALLS = [
 
 // Authentic crag documentation extracted from cms_b4e1305033.pdf (ΕΟΣ Ηλιούπολης 2018)
 export const CRAG_INFO_2018 = {
+  introGr:
+    'Ο μεγαλύτερος αναρριχητικός τομέας της Ηλιούπολης στον Υμηττό, με κάθετο συμπαγή ασβεστόλιθο και διαδρομές από εκπαιδευτικές πλάκες έως την ιστορική στέγη που πρωτοσκαρφαλώθηκε από τον Ιδοσίδη το 1960.',
+  introEn:
+    'The largest climbing sector of Ilioupoli on Mt. Hymettus, featuring solid vertical limestone ranging from beginner slabs to the historic overhanging roof first climbed by Idosidis in 1960.',
+  restorationShortGr:
+    'Ανακατασκευή & συντήρηση 2017 (Δ. Τιτόπουλος · ΣΠΑΥ / Δήμος Ηλιούπολης / ΕΟΣΗ) με Inox 316L UIAA.',
+  restorationShortEn:
+    'Restored in 2017 (D. Titopoulos · SPAY / Ilioupoli / EOSH) with Inox 316L UIAA bolts & anchors.',
+  approachMinutes: 10,
+  parkingMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.93475,23.76865',
+  cragMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.9355,23.7702',
+  wikilocUrl: 'https://loc.wiki/t/166954682?wa=sc',
   shadeGr:
     'Καλοκαίρι: σκιά από το πρωί έως τις 10:00 και από τις 11:00 έως το βράδυ. Χειμώνας: σκιά όλη την ημέρα.',
   shadeEn:
