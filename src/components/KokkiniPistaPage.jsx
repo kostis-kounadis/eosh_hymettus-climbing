@@ -29,7 +29,6 @@ import {
 } from '../hooks/useClimberLogbook';
 
 const INITIAL_FILTERS = {
-  search: '',
   selectedGrades: [],
   setter: 'all',
   year: 'all',
@@ -94,6 +93,12 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
     }
   }, [userMode]);
 
+  const handleResetAllFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setSelectedRoute(null);
+    setSearchParams({}, { replace: true });
+  };
+
   const handleSelectRoute = (route) => {
     setSelectedRoute(route);
     if (route) {
@@ -108,30 +113,8 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
 
   // Compute filtered routes
   const filteredRoutes = useMemo(() => {
-    const q = filters.search.trim().toLowerCase();
     return KOKKINI_PISTA_ROUTES.filter((r) => {
       const entry = getEntry(r.id);
-
-      // Search query
-      if (q) {
-        const haystack = [
-          r.pdfNumber,
-          r.displayCode,
-          r.nameGr,
-          r.nameEn,
-          r.uiaa,
-          r.french,
-          r.settersRawGr,
-          r.settersRawEn,
-          r.noteGr,
-          r.noteEn,
-          isMemberOrAdmin ? entry.notes : '',
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
 
       // Wall filter
       if (filters.wallFilter !== 'all' && String(r.wall) !== filters.wallFilter) {
@@ -211,7 +194,6 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.search.trim()) count += 1;
     if (filters.selectedGrades.length > 0) count += 1;
     if (filters.setter !== 'all') count += 1;
     if (filters.year !== 'all') count += 1;
@@ -428,7 +410,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
             className={`topo-sticky-container mb-3 lg:mb-0 ${
               isExpandedSize
                 ? 'lg:col-span-12 topo-expanded-desktop lg:mb-4'
-                : 'lg:col-span-5 xl:col-span-5 topo-split-desktop'
+                : 'lg:col-span-4 xl:col-span-4 topo-split-desktop'
             }`}
           >
             <InteractiveTopo
@@ -449,13 +431,14 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
               onToggleTickStatus={toggleTickStatus}
               isExpandedSize={isExpandedSize}
               onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
+              onResetFilters={handleResetAllFilters}
             />
           </div>
 
           {/* Column 2: Filter Bar + Grade Histogram & Crag Stats + Route List/Table */}
           <div
             className={`min-w-0 ${
-              isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-7 xl:col-span-7'
+              isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-8 xl:col-span-8'
             }`}
           >
             {/* Compact Filter Bar */}
@@ -477,7 +460,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
               onChangeViewMode={setViewMode}
             />
 
-            {/* Rockfax Grade Distribution Bar Chart & Crag Info (Collapsible on mobile, open on desktop) */}
+            {/* Grade Distribution Bar Chart & Crag Info (Collapsible on mobile, open on desktop) */}
             <GradeChartAndStats
               isGr={isGr}
               userMode={userMode}

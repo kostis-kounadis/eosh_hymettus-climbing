@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Search,
   SlidersHorizontal,
   Heart,
   Star,
@@ -43,50 +42,34 @@ export default function RouteFilterBar({
   return (
     <Card className="border border-gray-200 bg-white mb-3">
       <CardContent className="p-2.5 sm:p-3.5 space-y-2.5">
-        {/* Compact Top Row: Search + Quick Filters + Filter Drawer Toggle + View Switcher */}
+        {/* Compact Top Row: Quick Grade Pills + Favourite + Filter Drawer Toggle + View Switcher */}
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          {/* Search Input */}
-          <div className="relative flex-1 min-w-[155px]">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={filters.search}
-              onChange={(e) => update({ search: e.target.value })}
-              placeholder={
-                isGr
-                  ? 'Αναζήτηση #, ονόματος, ανοίξαντα...'
-                  : 'Search #, route name, setter...'
-              }
-              className="w-full h-8 pl-8 pr-7 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1e3a8a] transition-colors"
-            />
-            {filters.search && (
-              <button
-                type="button"
-                onClick={() => update({ search: '' })}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Quick Rockfax Band Pills (visible on mobile right in the compact bar) */}
+          {/* Quick Grade Band Pills: Easy (3–5c), Medium (6a–6c+), Hard (7a–7c+) */}
           <button
             type="button"
-            onClick={() => onSelectGradeTier('orange')}
-            className="h-8 px-2.5 rounded-lg text-[11px] font-bold bg-[#bc813a] text-white hover:opacity-90 transition-opacity"
-            title={isGr ? 'Μέτριες (5a – 6a+)' : 'Moderate (5a – 6a+)'}
+            onClick={() => onSelectGradeTier('easy')}
+            className="h-8 px-2.5 rounded-lg text-[11px] font-bold bg-green-600 text-white hover:bg-green-700 transition-colors shadow-2xs"
+            title={isGr ? 'Εύκολες (3 – 5c)' : 'Easy (3 – 5c)'}
           >
-            {gradeSystem === 'uiaa' ? 'V-–VI+' : '5a–6a+'}
+            {gradeSystem === 'uiaa' ? 'III–VI-' : '3–5c'}
           </button>
 
           <button
             type="button"
-            onClick={() => onSelectGradeTier('red')}
-            className="h-8 px-2.5 rounded-lg text-[11px] font-bold bg-[#b83a45] text-white hover:opacity-90 transition-opacity"
-            title={isGr ? 'Δύσκολες (6b – 7a)' : 'Hard (6b – 7a)'}
+            onClick={() => onSelectGradeTier('medium')}
+            className="h-8 px-2.5 rounded-lg text-[11px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-2xs"
+            title={isGr ? 'Μέτριες (6a – 6c+)' : 'Medium (6a – 6c+)'}
           >
-            {gradeSystem === 'uiaa' ? 'VII-–VIII' : '6b–7a'}
+            {gradeSystem === 'uiaa' ? 'VI–VII+' : '6a–6c+'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSelectGradeTier('hard')}
+            className="h-8 px-2.5 rounded-lg text-[11px] font-bold bg-red-600 text-white hover:bg-red-700 transition-colors shadow-2xs"
+            title={isGr ? 'Δύσκολες (7a – 7c+)' : 'Hard (7a – 7c+)'}
+          >
+            {gradeSystem === 'uiaa' ? 'VIII-–IX+' : '7a–7c+'}
           </button>
 
           {/* Favourite Chip (ONLY for Logged-In Member / Admin) */}

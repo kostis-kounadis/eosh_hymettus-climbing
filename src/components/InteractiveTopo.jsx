@@ -6,7 +6,6 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  Eye,
   Wrench,
   AlertTriangle,
   Heart,
@@ -25,7 +24,7 @@ import { Badge } from './ui/badge';
 import {
   KOKKINI_WALLS,
   getGradeBadgeClass,
-  getRockfaxHex,
+  getGradeHex,
 } from '../data/kokkiniPistaRoutes';
 import { TICK_TYPES, isCompletedTick } from '../hooks/useClimberLogbook';
 
@@ -78,11 +77,26 @@ export default function InteractiveTopo({
   onToggleTickStatus,
   isExpandedSize: controlledExpandedSize,
   onToggleExpandedSize,
+  onResetFilters,
 }) {
   const [isOpen, setIsOpen] = useState(true);
   const [internalExpanded, setInternalExpanded] = useState(false);
   const isExpandedSize =
     controlledExpandedSize !== undefined ? controlledExpandedSize : internalExpanded;
+
+  const handleToggleOpen = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (!next) {
+        // Collapsing resets topo selection, zoom/pan, and clears all filters
+        onSelectRoute?.(null);
+        setZoomLevel(1);
+        setPan({ x: 0, y: 0 });
+        onResetFilters?.();
+      }
+      return next;
+    });
+  };
 
   const handleToggleBoxSize = () => {
     if (onToggleExpandedSize) {
@@ -97,7 +111,6 @@ export default function InteractiveTopo({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
 
-  const [showOriginalPdfPhoto, setShowOriginalPdfPhoto] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [draggingPointIdx, setDraggingPointIdx] = useState(null);
   const [copiedPathNotice, setCopiedPathNotice] = useState(false);
@@ -531,219 +544,28 @@ export default function InteractiveTopo({
   };
 
   const activeImageSrc =
-    customWallImages[activeWall] ||
-    (showOriginalPdfPhoto ? wallConfig.imageOriginal : wallConfig.imageClean);
+    customWallImages[activeWall] || wallConfig.imageClean;
 
   const selectedEntry = selectedRoute ? getEntry(selectedRoute.id) : null;
   const formattedZoom = `${Number(zoomLevel.toFixed(1))}×`;
 
   return (
     <div ref={stickyRef} className={isStuck ? 'is-stuck' : ''}>
-      <div className="topo-sticky-inner bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        {/* Compact Top Control Bar */}
-        <div className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-gradient-to-r from-[#1e3a8a] to-[#1e40af] text-white flex items-center justify-between gap-1.5 flex-wrap">
-          <div className="flex items-center gap-1.5 min-w-0">
+      <div className="topo-sticky-inner bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm relative">
+        {/* Collapsed Bar: strictly visible when topo is collapsed */}
+        {!isOpen && (
+          <div className="p-2 sm:p-2.5 flex items-center">
             <button
               type="button"
-              onClick={() => setIsOpen((v) => !v)}
-              className="inline-flex items-center gap-1 font-semibold text-xs bg-white/15 hover:bg-white/25 px-2 py-1 rounded-md transition-colors"
-              aria-expanded={isOpen}
+              onClick={handleToggleOpen}
+              className="h-8 px-3.5 inline-flex items-center gap-1.5 font-semibold text-xs bg-white/20 hover:bg-white/30 text-white border border-white/40 backdrop-blur-xs rounded-full transition-colors shadow-sm"
+              aria-expanded={false}
             >
-              {isOpen ? (
-                <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
-              )}
-              <span>{isGr ? 'Φωτο-Τοπό' : 'Photo-Topo'}</span>
-              {!isOpen && selectedRoute && (
-                <span className="ml-0.5 px-1.5 py-0 rounded bg-amber-400 text-gray-950 font-extrabold text-[10px]">
-                  #{selectedRoute.topoLabel}
-                </span>
-              )}
+              <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
             </button>
-
-            {/* Wall Switcher Pills */}
-            <div className="inline-flex rounded-md bg-black/25 p-0.5 text-[11px] sm:text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  onChangeWall(1);
-                  if (!isOpen) setIsOpen(true);
-                }}
-                className={`px-2 py-0.5 rounded font-medium transition-colors ${
-                  activeWall === 1
-                    ? 'bg-white text-[#1e3a8a] shadow-2xs font-bold'
-                    : 'text-white/85 hover:text-white'
-                }`}
-              >
-                {isGr ? 'Τοίχος 1 (#1–12)' : 'Wall 1 (#1–12)'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onChangeWall(2);
-                  if (!isOpen) setIsOpen(true);
-                }}
-                className={`px-2 py-0.5 rounded font-medium transition-colors ${
-                  activeWall === 2
-                    ? 'bg-white text-[#1e3a8a] shadow-2xs font-bold'
-                    : 'text-white/85 hover:text-white'
-                }`}
-              >
-                {isGr ? 'Τοίχος 2 (#13–33)' : 'Wall 2 (#13–33)'}
-              </button>
-            </div>
           </div>
-
-          {/* Right Controls */}
-          <div className="flex items-center gap-1">
-            {/* Prominent Un-highlight ("Show All") button whenever a route is highlighted */}
-            {selectedRoute && (
-              <button
-                type="button"
-                onClick={() => onSelectRoute(null)}
-                className="inline-flex items-center gap-1 text-[11px] sm:text-xs bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold px-2 py-1 rounded-md shadow-2xs transition-colors"
-                title={
-                  isGr
-                    ? 'Εμφάνιση όλων των διαδρομών (καθαρισμός επιλογής)'
-                    : 'Show all routes (un-highlight)'
-                }
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>
-                  {isGr
-                    ? `Όλες (#${selectedRoute.topoLabel})`
-                    : `Show All (#${selectedRoute.topoLabel})`}
-                </span>
-              </button>
-            )}
-
-            {isOpen && (
-              <>
-                {/* Zoom Controls: resizes ONLY the photo/topo inside the fixed box */}
-                <div className="inline-flex items-center rounded-md bg-white/15 overflow-hidden">
-                  {zoomLevel > 1.05 && (
-                    <button
-                      type="button"
-                      onClick={() => handleStepZoom(-0.4)}
-                      title={isGr ? 'Σμίκρυνση' : 'Zoom Out'}
-                      className="px-1.5 py-1 hover:bg-white/20 text-white transition-colors"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleCycleZoomButton}
-                    data-testid="topo-zoom-toggle"
-                    title={
-                      isGr
-                        ? 'Μεγέθυνση φωτογραφίας εντός πλαισίου (ή ροδέλα / pinch)'
-                        : 'Zoom photo inside box (or mouse wheel / pinch)'
-                    }
-                    className={`inline-flex items-center gap-1 text-xs px-2 py-1 transition-colors ${
-                      zoomLevel > 1.05
-                        ? 'bg-sky-400 text-gray-950 font-bold'
-                        : 'hover:bg-white/25 text-white'
-                    }`}
-                  >
-                    {zoomLevel > 1.05 ? (
-                      <ZoomOut className="w-3.5 h-3.5" />
-                    ) : (
-                      <ZoomIn className="w-3.5 h-3.5" />
-                    )}
-                    <span>{formattedZoom}</span>
-                  </button>
-                  {zoomLevel < MAX_ZOOM && (
-                    <button
-                      type="button"
-                      onClick={() => handleStepZoom(0.4)}
-                      title={isGr ? 'Μεγέθυνση +' : 'Zoom In +'}
-                      className="px-1.5 py-1 hover:bg-white/20 text-white transition-colors hidden sm:inline-flex"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Box Size Toggle (Μεγάλο / Κανονικό): ONLY control that resizes the outer box */}
-                <button
-                  type="button"
-                  onClick={handleToggleBoxSize}
-                  data-testid="topo-box-size-toggle"
-                  title={isGr ? 'Μέγεθος Πλαισίου (Μεγάλο / Κανονικό)' : 'Toggle Box Size'}
-                  className={`hidden sm:inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-colors ${
-                    isExpandedSize
-                      ? 'bg-white text-[#1e3a8a] font-bold shadow-2xs'
-                      : 'bg-white/15 hover:bg-white/25 text-white'
-                  }`}
-                >
-                  {isExpandedSize ? (
-                    <Minimize2 className="w-3.5 h-3.5" />
-                  ) : (
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  )}
-                  <span className="hidden md:inline">
-                    {isExpandedSize
-                      ? isGr
-                        ? 'Κανονικό'
-                        : 'Compact'
-                      : isGr
-                      ? 'Μεγάλο'
-                      : 'Expand'}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowOriginalPdfPhoto((v) => !v)}
-                  title={
-                    isGr
-                      ? 'Εναλλαγή Καθαρής Φωτογραφίας / Πρωτότυπου PDF'
-                      : 'Toggle Clean Photo vs Original PDF Lines'
-                  }
-                  className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-colors ${
-                    showOriginalPdfPhoto
-                      ? 'bg-amber-300 text-gray-950 font-semibold'
-                      : 'bg-white/15 hover:bg-white/25 text-white'
-                  }`}
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">
-                    {showOriginalPdfPhoto
-                      ? isGr
-                        ? 'Φωτό PDF'
-                        : 'PDF Photo'
-                      : isGr
-                      ? 'Καθαρή Φωτό'
-                      : 'Clean Photo'}
-                  </span>
-                </button>
-
-                {/* Admin-only Topo Path Editor toggle */}
-                {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setEditMode((v) => !v)}
-                    title={
-                      isGr
-                        ? 'Επεξεργασία Γραμμών Topo (Admin)'
-                        : 'Edit Topo Paths (Admin)'
-                    }
-                    className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md transition-colors ${
-                      editMode
-                        ? 'bg-emerald-400 text-gray-950 font-bold'
-                        : 'bg-emerald-500/30 hover:bg-emerald-500/45 text-emerald-100 border border-emerald-400/40'
-                    }`}
-                  >
-                    <Wrench className="w-3.5 h-3.5" />
-                    <span>Edit Topo</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Admin Topo Editor Toolbar (Only visible in Admin Mode when Edit Topo is active) */}
         {isOpen && isAdmin && editMode && (
@@ -938,7 +760,7 @@ export default function InteractiveTopo({
                       const endPt = pxPts[pxPts.length - 1];
                       const badgeRadius = isSelected ? 22 : 16.5;
                       const badgeY = Math.min(H - badgeRadius - 4, startPt[1] + 22);
-                      const rockfaxHex = getRockfaxHex(route.french);
+                      const gradeHex = getGradeHex(route.french);
 
                       return (
                         <g
@@ -1033,7 +855,7 @@ export default function InteractiveTopo({
                               />
                             ))}
 
-                          {/* True 1:1 Circular Start Badge at Base of Route (Rockfax-colored) */}
+                          {/* True 1:1 Circular Start Badge at Base of Route (Grade-colored) */}
                           <g transform={`translate(${startPt[0]}, ${badgeY})`}>
                             <circle
                               cx="0"
@@ -1044,7 +866,7 @@ export default function InteractiveTopo({
                                   ? '#1e3a8a'
                                   : isSent
                                   ? '#059669'
-                                  : rockfaxHex
+                                  : gradeHex
                               }
                               stroke={
                                 isSelected
@@ -1081,6 +903,101 @@ export default function InteractiveTopo({
                 </svg>
               </div>
 
+              {/* Top Vignette Gradient for readability over rock photo and sky */}
+              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none z-10" />
+
+              {/* 3.A Topo Toolbar (Floating Transparent Overlay directly above photo) */}
+              <div className="absolute top-2 left-2 right-2 sm:top-2.5 sm:left-2.5 sm:right-2.5 z-20 flex items-center justify-between gap-2 pointer-events-none">
+                <div className="flex items-center gap-2 pointer-events-auto min-w-0">
+                  {/* Element 1: Collapsible button ("Πανοραμικό" in GR / "Topo" in EN) */}
+                  <button
+                    type="button"
+                    onClick={handleToggleOpen}
+                    className="h-8 px-3.5 inline-flex items-center gap-1.5 font-semibold text-xs bg-white/20 hover:bg-white/30 text-white border border-white/40 backdrop-blur-xs rounded-full transition-colors shadow-sm"
+                    aria-expanded={true}
+                  >
+                    <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
+                  </button>
+
+                  {/* Element 2: Wall Tabs Switcher */}
+                  <div className="h-8 inline-flex items-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xs p-0.5 text-xs font-semibold shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => onChangeWall(1)}
+                      className={`h-7 px-2.5 sm:px-3 rounded-full inline-flex items-center justify-center transition-colors ${
+                        activeWall === 1
+                          ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
+                          : 'text-white/90 hover:text-white font-medium'
+                      }`}
+                    >
+                      {isGr ? 'Τοίχος 1 (1–12)' : 'Wall 1 (1–12)'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onChangeWall(2)}
+                      className={`h-7 px-2.5 sm:px-3 rounded-full inline-flex items-center justify-center transition-colors ${
+                        activeWall === 2
+                          ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
+                          : 'text-white/90 hover:text-white font-medium'
+                      }`}
+                    >
+                      {isGr ? 'Τοίχος 2 (13–33)' : 'Wall 2 (13–33)'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Controls: Element 3 (Make larger/smaller icon) + optional Admin edit */}
+                <div className="flex items-center gap-1.5 pointer-events-auto ml-auto">
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setEditMode((v) => !v)}
+                      title={
+                        isGr
+                          ? 'Επεξεργασία Γραμμών Topo (Admin)'
+                          : 'Edit Topo Paths (Admin)'
+                      }
+                      className={`h-8 px-2.5 inline-flex items-center gap-1 text-xs rounded-full border transition-colors ${
+                        editMode
+                          ? 'bg-emerald-400 text-gray-950 font-bold border-emerald-300'
+                          : 'bg-white/20 hover:bg-white/30 text-emerald-200 border-white/40 backdrop-blur-xs'
+                      }`}
+                    >
+                      <Wrench className="w-3 h-3" />
+                      <span className="hidden sm:inline">Admin</span>
+                    </button>
+                  )}
+
+                  {/* Element 3: Make larger/smaller icon */}
+                  <button
+                    type="button"
+                    onClick={handleToggleBoxSize}
+                    data-testid="topo-box-size-toggle"
+                    title={
+                      isExpandedSize
+                        ? isGr
+                          ? 'Επαναφορά μεγέθους πλαισίου'
+                          : 'Compact box size'
+                        : isGr
+                        ? 'Μεγέθυνση πλαισίου'
+                        : 'Expand box size'
+                    }
+                    className={`w-8 h-8 rounded-full border backdrop-blur-xs inline-flex items-center justify-center transition-colors shadow-sm ${
+                      isExpandedSize
+                        ? 'border-white/60 bg-white/30 hover:bg-white/40 text-white'
+                        : 'border-white/40 bg-white/20 hover:bg-white/30 text-white'
+                    }`}
+                  >
+                    {isExpandedSize ? (
+                      <Minimize2 className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Maximize2 className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
               {/* Floating Reset Zoom pill inside viewport corner when zoomed in */}
               {zoomLevel > 1.05 && (
                 <button
@@ -1099,41 +1016,38 @@ export default function InteractiveTopo({
             </div>
 
             {/* Compact Legend Bar */}
-            <div className="px-3 py-1 bg-neutral-900 text-gray-300 text-[11px] flex flex-wrap items-center justify-between gap-2 border-t border-neutral-800">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#bc813a] inline-block" />
-                  <span>5a–6a+</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#b83a45] inline-block" />
-                  <span>6b–7a</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-3 h-0.5 bg-yellow-400 inline-block border-b border-dashed border-yellow-300" />
-                  <span className="text-yellow-300">
-                    {isGr ? 'Κίτρινη: Top-rope*' : 'Yellow: Top-rope*'}
-                  </span>
-                </span>
-              </div>
-              <span className="text-gray-400 hidden sm:inline">
-                {zoomLevel > 1.05
-                  ? isGr
-                    ? 'Σύρετε για μετακίνηση · Ροδέλα/Pinch για zoom'
-                    : 'Drag to pan · Wheel/Pinch to zoom'
-                  : selectedRoute
-                  ? isGr
-                    ? 'Πατήστε στο φόντο ή «Όλες» για επαναφορά'
-                    : 'Tap background or "Show All" to un-highlight'
-                  : isGr
-                  ? 'Ροδέλα/Pinch για zoom · Πατήστε γραμμή για επιλογή'
-                  : 'Wheel/Pinch to zoom · Tap line to select'}
+            <div className="px-3 py-1.5 bg-neutral-900 text-gray-300 text-[11px] flex flex-wrap items-center gap-3 border-t border-neutral-800">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a] inline-block shadow-xs" />
+                <span>{gradeSystem === 'uiaa' ? 'III–VI-' : '3–5c'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block shadow-xs" />
+                <span>{gradeSystem === 'uiaa' ? 'VI–VII+' : '6a–6c+'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#dc2626] inline-block shadow-xs" />
+                <span>{gradeSystem === 'uiaa' ? 'VIII-–IX+' : '7a–7c+'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#18181b] border border-white/40 inline-block shadow-xs" />
+                <span>{gradeSystem === 'uiaa' ? '≥X-' : '≥8a'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3.5 h-0.5 bg-yellow-400 inline-block border-b border-dashed border-yellow-300" />
+                <span className="text-yellow-300 font-medium">Top-rope*</span>
               </span>
             </div>
 
             {/* Selected Route Quick HUD Bar attached to bottom of Topo */}
             {selectedRoute && (
-              <div className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-white border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
+              <div
+                className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 border-t flex flex-wrap items-center justify-between gap-2 transition-colors ${
+                  selectedRoute.isTopRopeOnly
+                    ? 'bg-amber-50/60 border-amber-200/70'
+                    : 'bg-white border-gray-200'
+                }`}
+              >
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
                   <div className="flex items-center">
                     <button
@@ -1154,9 +1068,13 @@ export default function InteractiveTopo({
                     </button>
                   </div>
 
+                  {/* Route # Box - Neutral style matching Table 4.C & _older-version */}
                   <span
-                    className="inline-flex items-center justify-center min-w-[26px] h-6 px-1.5 rounded-full text-white font-bold text-xs flex-shrink-0"
-                    style={{ backgroundColor: getRockfaxHex(selectedRoute.french) }}
+                    className={`inline-flex items-center justify-center w-[30px] h-6 rounded text-xs font-bold flex-shrink-0 ${
+                      selectedRoute.isTopRopeOnly
+                        ? 'bg-amber-100 text-amber-950 border border-amber-300/80'
+                        : 'bg-gray-100 text-gray-800 border border-gray-200/70'
+                    }`}
                   >
                     {selectedRoute.pdfNumber || '—'}
                   </span>
@@ -1172,15 +1090,21 @@ export default function InteractiveTopo({
                           ? `Διαδρομή #${selectedRoute.pdfNumber}`
                           : `Route #${selectedRoute.pdfNumber}`}
                       </span>
-                      <Badge
-                        className={`${getGradeBadgeClass(
-                          selectedRoute.french
-                        )} text-[11px] px-1.5 py-0 font-bold`}
-                      >
-                        {gradeSystem === 'uiaa'
-                          ? `${selectedRoute.uiaa} (${selectedRoute.french})`
-                          : `${selectedRoute.french} (${selectedRoute.uiaa})`}
-                      </Badge>
+
+                      {/* Grade Boxes: French first / UIAA then, using restored website colors */}
+                      <div className="inline-flex items-center gap-1">
+                        <span
+                          className={`inline-flex items-center justify-center px-2 h-6 rounded text-xs font-bold leading-none ${getGradeBadgeClass(
+                            selectedRoute.french
+                          )}`}
+                        >
+                          {selectedRoute.french}
+                        </span>
+                        <span className="inline-flex items-center justify-center px-2 h-6 rounded text-xs font-semibold leading-none border border-gray-300 text-gray-700 bg-transparent">
+                          {selectedRoute.uiaa}
+                        </span>
+                      </div>
+
                       <span className="text-xs text-gray-600 font-medium">
                         {selectedRoute.length}m ·{' '}
                         {selectedRoute.isTopRopeOnly ? (

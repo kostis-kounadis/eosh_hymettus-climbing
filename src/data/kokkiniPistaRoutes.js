@@ -42,87 +42,95 @@ export const UIAA_GRADE_ORDER = [
   'VIII',
 ];
 
-// Official Rockfax Digital grade color bands & hex codes:
-// Green (#6a8b2e): <= 4c (UIAA <= IV+)
-// Orange (#bc813a): 5a – 6a+ (UIAA V- – VI+)
-// Red (#b83a45): 6b – 7a (UIAA VII- – VIII)
-// Black (#3c3c3b): 7a+ and above (UIAA VIII+ and above)
-export const ROCKFAX_BANDS = [
+// Grade color bands & hex codes:
+// Easy (Green): 3 – 5c (UIAA III – VI-)
+// Medium (Orangy): 6a – 6c+ (UIAA VI – VII+)
+// Hard (Red): 7a – 7c+ (UIAA VIII- – IX+)
+// Very Hard (Black): 8a and above (UIAA >= X-)
+export const GRADE_BANDS = [
   {
-    id: 'green',
-    labelFr: '≤ 4c',
-    labelUiaa: '≤ IV+',
+    id: 'easy',
+    labelFr: '3 – 5c',
+    labelUiaa: 'III – VI-',
     nameGr: 'Εύκολες',
     nameEn: 'Easy',
-    hex: '#6a8b2e',
-    bgSolid: 'bg-[#6a8b2e] text-white border-[#587425]',
-    badgeLight: 'bg-[#6a8b2e]/15 text-[#49611e] border-[#6a8b2e]/40',
-    grades: ['4a', '4b', '4c'],
+    hex: '#16a34a',
+    bgSolid: 'bg-green-600 text-white border-green-700',
+    badgeLight: 'bg-green-100 text-green-800 border-green-300',
+    grades: ['3a', '3b', '3c', '4a', '4b', '4c', '5a', '5b', '5c'],
   },
   {
-    id: 'orange',
-    labelFr: '5a – 6a+',
-    labelUiaa: 'V- – VI+',
+    id: 'medium',
+    labelFr: '6a – 6c+',
+    labelUiaa: 'VI – VII+',
     nameGr: 'Μέτριες',
-    nameEn: 'Moderate',
-    hex: '#bc813a',
-    bgSolid: 'bg-[#bc813a] text-white border-[#a36d2d]',
-    badgeLight: 'bg-[#bc813a]/15 text-[#8a5a22] border-[#bc813a]/40',
-    grades: ['5a', '5b', '5c', '6a', '6a+'],
+    nameEn: 'Medium',
+    hex: '#f59e0b',
+    bgSolid: 'bg-amber-500 text-white border-amber-600',
+    badgeLight: 'bg-amber-100 text-amber-800 border-amber-300',
+    grades: ['6a', '6a+', '6b', '6b+', '6c', '6c+'],
   },
   {
-    id: 'red',
-    labelFr: '6b – 7a',
-    labelUiaa: 'VII- – VIII',
+    id: 'hard',
+    labelFr: '7a – 7c+',
+    labelUiaa: 'VIII- – IX+',
     nameGr: 'Δύσκολες',
     nameEn: 'Hard',
-    hex: '#b83a45',
-    bgSolid: 'bg-[#b83a45] text-white border-[#9c2f39]',
-    badgeLight: 'bg-[#b83a45]/15 text-[#8f2630] border-[#b83a45]/40',
-    grades: ['6b', '6b+', '6c', '6c+', '7a'],
+    hex: '#dc2626',
+    bgSolid: 'bg-red-600 text-white border-red-700',
+    badgeLight: 'bg-rose-100 text-rose-800 border-rose-300',
+    grades: ['7a', '7a+', '7b', '7b+', '7c', '7c+'],
   },
   {
-    id: 'black',
-    labelFr: '≥ 7a+',
-    labelUiaa: '≥ VIII+',
+    id: 'extreme',
+    labelFr: '≥ 8a',
+    labelUiaa: '≥ X-',
     nameGr: 'Πολύ Δύσκολες',
-    nameEn: 'Extreme',
-    hex: '#3c3c3b',
-    bgSolid: 'bg-[#3c3c3b] text-white border-[#262625]',
-    badgeLight: 'bg-[#3c3c3b]/15 text-[#262625] border-[#3c3c3b]/40',
-    grades: ['7a+', '7b', '7b+', '7c', '7c+', '8a'],
+    nameEn: 'Very Hard',
+    hex: '#18181b',
+    bgSolid: 'bg-zinc-900 text-white border-black',
+    badgeLight: 'bg-zinc-200 text-zinc-900 border-zinc-400',
+    grades: ['8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b'],
   },
 ];
 
 export const getGradeTier = (french) => {
-  if (['4a', '4b', '4c'].includes(french)) return 'green';
-  if (['5a', '5b', '5c', '6a', '6a+'].includes(french)) return 'orange';
-  if (['6b', '6b+', '6c', '6c+', '7a'].includes(french)) return 'red';
-  return 'black';
+  if (!french) return 'easy';
+  const clean = String(french).toLowerCase().trim();
+  if (clean.startsWith('3') || clean.startsWith('4') || clean.startsWith('5')) {
+    return 'easy';
+  }
+  if (clean.startsWith('6')) {
+    return 'medium';
+  }
+  if (clean.startsWith('7')) {
+    return 'hard';
+  }
+  return 'extreme';
 };
 
-export const getRockfaxHex = (french) => {
+export const getGradeHex = (french) => {
   const tier = getGradeTier(french);
-  if (tier === 'green') return '#6a8b2e';
-  if (tier === 'orange') return '#bc813a';
-  if (tier === 'red') return '#b83a45';
-  return '#3c3c3b';
+  if (tier === 'easy') return '#16a34a';
+  if (tier === 'medium') return '#f59e0b';
+  if (tier === 'hard') return '#dc2626';
+  return '#18181b';
 };
 
 export const getGradeBadgeClass = (french) => {
   const tier = getGradeTier(french);
-  if (tier === 'green') return 'bg-[#6a8b2e] text-white border-[#587425]';
-  if (tier === 'orange') return 'bg-[#bc813a] text-white border-[#a36d2d]';
-  if (tier === 'red') return 'bg-[#b83a45] text-white border-[#9c2f39]';
-  return 'bg-[#3c3c3b] text-white border-[#262625]';
+  if (tier === 'easy') return 'bg-green-100 text-green-800 border border-green-300';
+  if (tier === 'medium') return 'bg-amber-100 text-amber-800 border border-amber-300';
+  if (tier === 'hard') return 'bg-rose-100 text-rose-800 border border-rose-300';
+  return 'bg-zinc-200 text-zinc-900 border border-zinc-400';
 };
 
 export const getGradeSoftBadgeClass = (french) => {
   const tier = getGradeTier(french);
-  if (tier === 'green') return 'bg-[#6a8b2e]/15 text-[#49611e] border-[#6a8b2e]/40';
-  if (tier === 'orange') return 'bg-[#bc813a]/15 text-[#8a5a22] border-[#bc813a]/40';
-  if (tier === 'red') return 'bg-[#b83a45]/15 text-[#8f2630] border-[#b83a45]/40';
-  return 'bg-[#3c3c3b]/15 text-[#262625] border-[#3c3c3b]/40';
+  if (tier === 'easy') return 'bg-green-100 text-green-800 border-green-300';
+  if (tier === 'medium') return 'bg-amber-100 text-amber-800 border-amber-300';
+  if (tier === 'hard') return 'bg-rose-100 text-rose-800 border-rose-300';
+  return 'bg-zinc-200 text-zinc-900 border-zinc-400';
 };
 
 export const KOKKINI_WALLS = [

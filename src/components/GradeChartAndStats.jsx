@@ -18,7 +18,7 @@ import { Badge } from './ui/badge';
 import {
   FRENCH_GRADE_ORDER,
   UIAA_BY_FRENCH,
-  ROCKFAX_BANDS,
+  GRADE_BANDS,
   CRAG_INFO_2018,
   getGradeTier,
 } from '../data/kokkiniPistaRoutes';
@@ -144,7 +144,7 @@ export default function GradeChartAndStats({
   );
 
   const bandCounts = useMemo(() => {
-    const counts = { green: 0, orange: 0, red: 0, black: 0 };
+    const counts = { easy: 0, medium: 0, hard: 0, extreme: 0 };
     routes.forEach((r) => {
       const t = getGradeTier(r.french);
       counts[t] = (counts[t] || 0) + 1;
@@ -171,27 +171,27 @@ export default function GradeChartAndStats({
     return { completed, onsight, flash, redpoint, favourites };
   }, [routes, getEntry, isMemberOrAdmin]);
 
-  // Official Rockfax colors (#6a8b2e Green, #bc813a Orange, #b83a45 Red, #3c3c3b Black)
+  // Grade tier colors: Green (Easy), Orangy (Medium), Red (Hard), Black (Very Hard)
   const barColors = {
-    green: {
-      base: 'bg-[#6a8b2e]/90 hover:bg-[#6a8b2e]',
-      active: 'bg-[#6a8b2e] ring-2 ring-[#49611e] ring-offset-1',
-      sent: 'bg-black/35',
+    easy: {
+      base: 'bg-green-500/85 hover:bg-green-600',
+      active: 'bg-green-600 ring-2 ring-green-800 ring-offset-1',
+      sent: 'bg-green-950/40',
     },
-    orange: {
-      base: 'bg-[#bc813a]/90 hover:bg-[#bc813a]',
-      active: 'bg-[#bc813a] ring-2 ring-[#8a5a22] ring-offset-1',
-      sent: 'bg-black/35',
+    medium: {
+      base: 'bg-amber-500/85 hover:bg-amber-600',
+      active: 'bg-amber-600 ring-2 ring-amber-800 ring-offset-1',
+      sent: 'bg-amber-950/40',
     },
-    red: {
-      base: 'bg-[#b83a45]/90 hover:bg-[#b83a45]',
-      active: 'bg-[#b83a45] ring-2 ring-[#7a2029] ring-offset-1',
-      sent: 'bg-black/35',
+    hard: {
+      base: 'bg-rose-500/85 hover:bg-rose-600',
+      active: 'bg-rose-600 ring-2 ring-rose-800 ring-offset-1',
+      sent: 'bg-rose-950/40',
     },
-    black: {
-      base: 'bg-[#3c3c3b]/90 hover:bg-[#3c3c3b]',
-      active: 'bg-[#3c3c3b] ring-2 ring-black ring-offset-1',
-      sent: 'bg-black/50',
+    extreme: {
+      base: 'bg-zinc-800/90 hover:bg-black',
+      active: 'bg-black ring-2 ring-zinc-900 ring-offset-1',
+      sent: 'bg-zinc-950/60',
     },
   };
 
@@ -208,15 +208,19 @@ export default function GradeChartAndStats({
             <BarChart3 className="w-4 h-4 text-[#1e3a8a]" />
             <span>
               {isGr
-                ? 'Γράφημα Βαθμών (Rockfax) & Πληροφορίες'
-                : 'Grade Chart (Rockfax) & Crag Info'}
+                ? 'Γράφημα Βαθμών & Πληροφορίες'
+                : 'Grade Chart & Crag Info'}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            {/* Mini Rockfax stacked pill preview */}
+            {/* Mini stacked pill preview */}
             <div className="flex items-center gap-0.5 w-16 h-2 rounded-full overflow-hidden bg-gray-100">
-              <div className="h-full bg-[#bc813a]" style={{ flex: bandCounts.orange }} />
-              <div className="h-full bg-[#b83a45]" style={{ flex: bandCounts.red }} />
+              <div className="h-full bg-green-500" style={{ flex: bandCounts.easy }} />
+              <div className="h-full bg-amber-500" style={{ flex: bandCounts.medium }} />
+              <div className="h-full bg-rose-500" style={{ flex: bandCounts.hard }} />
+              {bandCounts.extreme > 0 && (
+                <div className="h-full bg-zinc-900" style={{ flex: bandCounts.extreme }} />
+              )}
             </div>
             {mobileExpanded ? (
               <ChevronUp className="w-4 h-4 text-gray-500" />
@@ -230,7 +234,7 @@ export default function GradeChartAndStats({
       {mobileExpanded && (
         <div className="space-y-3">
           <div className="grid xl:grid-cols-12 gap-3">
-            {/* Interactive Rockfax Grade Distribution Bar Chart */}
+            {/* Interactive Grade Distribution Bar Chart */}
             <Card className="xl:col-span-7 border border-gray-200 bg-white">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
@@ -239,8 +243,8 @@ export default function GradeChartAndStats({
                     <div>
                       <h3 className="text-xs sm:text-sm font-bold text-gray-900">
                         {isGr
-                          ? 'Κατανομή Βαθμολογιών (Rockfax)'
-                          : 'Grade Distribution (Rockfax)'}
+                          ? 'Κατανομή Βαθμολογιών'
+                          : 'Grade Distribution'}
                       </h3>
                       <p className="text-[11px] text-gray-500">
                         {isGr
@@ -250,9 +254,9 @@ export default function GradeChartAndStats({
                     </div>
                   </div>
 
-                  {/* Official Rockfax 4-Band Filter Pills */}
+                  {/* 4-Band Filter Pills */}
                   <div className="flex flex-wrap items-center gap-1">
-                    {ROCKFAX_BANDS.map((band) => {
+                    {GRADE_BANDS.map((band) => {
                       const count = bandCounts[band.id] || 0;
                       const disabled = count === 0;
                       return (

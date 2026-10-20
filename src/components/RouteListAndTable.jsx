@@ -19,7 +19,7 @@ import { Badge } from './ui/badge';
 import {
   FRENCH_GRADE_ORDER,
   getGradeBadgeClass,
-  getRockfaxHex,
+  getGradeHex,
 } from '../data/kokkiniPistaRoutes';
 import { TICK_TYPES } from '../hooks/useClimberLogbook';
 
@@ -158,7 +158,7 @@ export default function RouteListAndTable({
             const effectiveStars = isMemberOrAdmin
               ? (entry.userStars ?? route.defaultStars)
               : route.defaultStars;
-            const rockfaxHex = getRockfaxHex(route.french);
+            const gradeHex = getGradeHex(route.french);
 
             const displayName =
               route.nameGr !== '-'
@@ -185,11 +185,11 @@ export default function RouteListAndTable({
                 {/* Single High-Density Row */}
                 <div className="px-2.5 py-2 sm:px-3.5 sm:py-2.5 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {/* Rockfax-styled Circular Number Badge */}
+                    {/* Circular Number Badge */}
                     <div
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-extrabold text-xs flex-shrink-0 shadow-2xs"
                       style={{
-                        backgroundColor: isSelected ? '#1e3a8a' : rockfaxHex,
+                        backgroundColor: isSelected ? '#1e3a8a' : gradeHex,
                       }}
                       title={`Τοίχος ${route.wall}`}
                     >
@@ -242,7 +242,7 @@ export default function RouteListAndTable({
                     </div>
                   </div>
 
-                  {/* Right Side: Rockfax Grade Pill + (Member-only Fav) + Expand chevron */}
+                  {/* Right Side: Grade Pill + (Member-only Fav) + Expand chevron */}
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span
                       className={`px-2 py-0.5 rounded-md border text-xs font-extrabold whitespace-nowrap ${getGradeBadgeClass(
@@ -480,7 +480,7 @@ export default function RouteListAndTable({
                     </button>
                   </th>
                   <th className="py-2.5 px-3">
-                    {isGr ? 'Όνομα διαδρομής' : 'Route Name'}
+                    {isGr ? 'Διαδρομή' : 'Route'}
                   </th>
                   <th className="py-2.5 px-2.5 text-center">
                     <button
@@ -488,17 +488,7 @@ export default function RouteListAndTable({
                       onClick={() => handleSort('grade')}
                       className="inline-flex items-center gap-1 hover:text-[#1e3a8a]"
                     >
-                      <span>UIAA</span>
-                      <ArrowUpDown className="w-3 h-3" />
-                    </button>
-                  </th>
-                  <th className="py-2.5 px-2.5 text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('grade')}
-                      className="inline-flex items-center gap-1 hover:text-[#1e3a8a]"
-                    >
-                      <span>French</span>
+                      <span>{isGr ? 'Βαθμός' : 'Grade'}</span>
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
@@ -560,7 +550,6 @@ export default function RouteListAndTable({
                   const effectiveStars = isMemberOrAdmin
                     ? (entry.userStars ?? route.defaultStars)
                     : route.defaultStars;
-                  const rockfaxHex = getRockfaxHex(route.french);
 
                   return (
                     <tr
@@ -574,13 +563,16 @@ export default function RouteListAndTable({
                           : 'hover:bg-gray-50'
                       }`}
                     >
-                      {/* # Column with Rockfax Circle */}
+                      {/* # Column - Neutral grey style from _older-version with uniform box width */}
                       <td className="py-2 px-3 font-bold text-gray-900 sticky left-0 bg-inherit z-10">
                         <span
-                          className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white text-xs font-extrabold shadow-2xs"
-                          style={{
-                            backgroundColor: isSelected ? '#1e3a8a' : rockfaxHex,
-                          }}
+                          className={`inline-flex items-center justify-center w-[30px] h-6 rounded text-xs font-bold ${
+                            isSelected
+                              ? 'bg-[#1e3a8a] text-white shadow-2xs'
+                              : route.isTopRopeOnly
+                              ? 'bg-amber-100 text-amber-950 border border-amber-300/80'
+                              : 'bg-gray-100 text-gray-800 border border-gray-200/70'
+                          }`}
                         >
                           {route.pdfNumber || '—'}
                         </span>
@@ -596,20 +588,24 @@ export default function RouteListAndTable({
                         </div>
                       </td>
 
-                      {/* UIAA */}
-                      <td className="py-2 px-2.5 text-center font-bold text-gray-800">
-                        {route.uiaa}
-                      </td>
-
-                      {/* French with Rockfax Badge */}
-                      <td className="py-2 px-2.5 text-center">
-                        <Badge
-                          className={`${getGradeBadgeClass(
-                            route.french
-                          )} font-bold`}
-                        >
-                          {route.french}
-                        </Badge>
+                      {/* Combined Grade: French first / UIAA second, uniform width & height boxes */}
+                      <td className="py-2 px-2 text-center whitespace-nowrap">
+                        <div className="inline-flex items-center justify-center gap-1.5">
+                          {/* French Box */}
+                          <span
+                            className={`inline-flex items-center justify-center w-[38px] h-6 rounded text-xs font-bold leading-none shadow-2xs ${getGradeBadgeClass(
+                              route.french
+                            )}`}
+                          >
+                            {route.french}
+                          </span>
+                          {/* UIAA Box */}
+                          <span
+                            className="inline-flex items-center justify-center w-[46px] h-6 rounded text-xs font-semibold leading-none border border-gray-300 text-gray-700 bg-transparent"
+                          >
+                            {route.uiaa}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Length */}
