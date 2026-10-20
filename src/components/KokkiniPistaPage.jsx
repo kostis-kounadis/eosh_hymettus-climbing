@@ -605,9 +605,9 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
             {/* LEFT COLUMN (4 cols width) */}
             <div className="lg:col-span-4 space-y-2.5 mb-3 lg:mb-0">
               {/* Sector Header / Intro directly on light grey background (no white card, matching EOSH site styling) */}
-              <div className="space-y-1.5 mb-2 px-1 sm:px-0">
+              <div className="space-y-2 mb-3 sm:mb-3.5 px-1 sm:px-0 pt-0.5 sm:pt-1">
                 {/* Line 1: Sector Badge + Route Count + Approach Indicator */}
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 pb-0.5">
                   <Badge variant="outline" className="text-[11px] bg-white border-gray-200 text-gray-800 font-semibold shadow-2xs">
                     <MapPin className="w-3 h-3 mr-1 text-[#1e3a8a]" />
                     {isGr ? 'Ηλιούπολη' : 'Ilioupoli'}
@@ -631,12 +631,12 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                 </div>
 
                 {/* Line 2: Main Title (font-bold matching rest of EOSH site) */}
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight pt-1 pb-0.5 sm:py-1">
                   {isGr ? 'Κόκκινη Πίστα' : 'Red Crag (Kokkini Pista)'}
                 </h1>
 
                 {/* Line 3: Crag Intro Description */}
-                <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed pt-0.5">
+                <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed pt-0.5 pb-1">
                   {isGr ? CRAG_INFO_2018.introGr : CRAG_INFO_2018.introEn}
                 </p>
               </div>
