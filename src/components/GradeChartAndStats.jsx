@@ -390,7 +390,7 @@ export default function GradeChartAndStats({
         <div className="space-y-3">
           <div className="grid xl:grid-cols-12 gap-3">
             {/* Interactive Grade Distribution Bar Chart */}
-            <Card className="xl:col-span-7 border border-gray-200 bg-white">
+            <Card className="xl:col-span-6 border border-gray-200 bg-white">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                   <div className="flex items-center gap-2">
@@ -532,7 +532,7 @@ export default function GradeChartAndStats({
             </Card>
 
             {/* Right Column: Live Sun/Shade + (Member/Admin Logbook OR Guest Quick Stats) */}
-            <Card className="xl:col-span-5 border border-gray-200 bg-white flex flex-col justify-between">
+            <Card className="xl:col-span-6 border border-gray-200 bg-white flex flex-col justify-between">
               <CardContent className="p-3 sm:p-4 space-y-2.5">
                 {/* Live Sun/Shade Indicator */}
                 <div className="p-2.5 rounded-lg border bg-gray-50/80 border-gray-200/80">

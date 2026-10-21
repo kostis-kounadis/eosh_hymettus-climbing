@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Mountain, Sun, ArrowRight, Globe } from 'lucide-react';
+import { MapPin, Mountain, ArrowRight, Globe } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { sectors } from '../data/sectorsData';
@@ -54,7 +54,7 @@ export default function SectorsSectionPage({ isGr, onToggleLang }) {
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          <MapPin className="w-3 h-3 mr-1" /> {s.area}
+                          <MapPin className="w-3 h-3 mr-1" /> {isGr ? (s.areaGr || s.area) : s.area}
                         </Badge>
                         <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] text-xs border-transparent">
                           {s.routes} {isGr ? 'διαδρομές' : 'routes'}
@@ -77,9 +77,6 @@ export default function SectorsSectionPage({ isGr, onToggleLang }) {
                     <div className="text-sm text-gray-500 mb-3 flex items-center gap-3">
                       <span className="flex items-center gap-1">
                         <Mountain className="w-3.5 h-3.5" /> {s.grades}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Sun className="w-3.5 h-3.5" /> {isGr ? s.shadeGr : s.shadeEn}
                       </span>
                     </div>
                     <p className="text-sm text-gray-700 leading-relaxed">

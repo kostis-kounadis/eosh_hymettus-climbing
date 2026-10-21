@@ -34,6 +34,7 @@ import InteractiveTopo from './InteractiveTopo';
 import GradeChartAndStats, { getHymettusSunStatus } from './GradeChartAndStats';
 import RouteFilterBar from './RouteFilterBar';
 import RouteListAndTable from './RouteListAndTable';
+import SelectedRouteDetailPanel from './SelectedRouteDetailPanel';
 import LogbookModal from './LogbookModal';
 import {
   KOKKINI_PISTA_ROUTES,
@@ -68,20 +69,38 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
   const [logbookModalOpen, setLogbookModalOpen] = useState(false);
   const [approachDrawerOpen, setApproachDrawerOpen] = useState(false);
   const [infoDrawerOpen, setInfoDrawerOpen] = useState(false);
-  const stickyHeaderRef = useRef(null);
-  const [stickyTopOffset, setStickyTopOffset] = useState(0);
+  const stickyHeaderRefB = useRef(null);
+  const [stickyTopOffsetB, setStickyTopOffsetB] = useState(0);
+
+  const stickyHeaderRefA = useRef(null);
+  const [stickyTopOffsetA, setStickyTopOffsetA] = useState(0);
 
   useEffect(() => {
-    const el = stickyHeaderRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const update = () => {
-      setStickyTopOffset(el.offsetHeight);
+    if (typeof ResizeObserver === 'undefined') return;
+
+    let roB;
+    const elB = stickyHeaderRefB.current;
+    if (elB) {
+      const updateB = () => setStickyTopOffsetB(elB.offsetHeight);
+      updateB();
+      roB = new ResizeObserver(updateB);
+      roB.observe(elB);
+    }
+
+    let roA;
+    const elA = stickyHeaderRefA.current;
+    if (elA) {
+      const updateA = () => setStickyTopOffsetA(elA.offsetHeight);
+      updateA();
+      roA = new ResizeObserver(updateA);
+      roA.observe(elA);
+    }
+
+    return () => {
+      roB?.disconnect();
+      roA?.disconnect();
     };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  }, [filters]);
 
   // Live Side-by-Side Layout Switcher (Default Layout B, or ?layout=a)
   const layoutVariant = searchParams.get('layout') === 'a' ? 'a' : 'b';
@@ -269,7 +288,8 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
         setTimeout(() => {
           const rowEl = document.getElementById(`route-row-${route.id}`);
           if (rowEl) {
-            const stickyH = stickyHeaderRef.current?.offsetHeight || 0;
+            const activeStickyRef = isLayoutB ? stickyHeaderRefB : stickyHeaderRefA;
+            const stickyH = activeStickyRef.current?.offsetHeight || 0;
             // Add table header height (~36px) and a small margin (~8px)
             const totalStickyOffset = stickyH + 44;
             const rowTopDoc = rowEl.getBoundingClientRect().top + window.scrollY;
@@ -894,7 +914,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
             <div className="lg:col-span-8 min-w-0">
               {/* Sticky Topo + Filter Bar header stack */}
               <div
-                ref={stickyHeaderRef}
+                ref={stickyHeaderRefB}
                 className="sticky top-0 z-30 bg-gray-50 pt-1 pb-0 space-y-2"
               >
                 <div
@@ -940,7 +960,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
 
               {/* 4.C Route Table */}
               <RouteListAndTable
-                stickyTopOffset={stickyTopOffset}
+                stickyTopOffset={stickyTopOffsetB}
                 isGr={isGr}
                 userMode={userMode}
                 routes={filteredRoutes}
@@ -985,7 +1005,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                       : `${cragCounts.total} routes`}
                   </Badge>
                   <span className="text-xs text-gray-600 inline-flex items-center gap-1 font-medium">
-                    <Mountain className="w-3.5 h-3.5 text-[#1e3a8a]" /> V – VIII (5a – 7a)
+                    <Mountain className="w-3.5 h-3.5 text-[#1e3a8a]" /> 5a – 7a (V – VIII)
                   </span>
                   <span className="hidden sm:inline-flex text-xs text-gray-600 items-center gap-1 font-medium">
                     <Sun className="w-3.5 h-3.5 text-amber-500" />
@@ -1011,13 +1031,13 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
               className="lg:grid lg:grid-cols-12 lg:gap-5 lg:items-start"
               style={{ overflowAnchor: 'none' }}
             >
-              {/* Column 1: Sticky Interactive Photo-Topo */}
+              {/* Column 1: Topo + Selected Route Detail Panel */}
               <div
                 data-testid="topo-sticky-wrapper"
-                className={`topo-sticky-container mb-3 lg:mb-0 ${
+                className={`topo-sticky-container mb-3 lg:mb-0 space-y-3 ${
                   isExpandedSize
                     ? 'lg:col-span-12 topo-expanded-desktop lg:mb-4'
-                    : 'lg:col-span-4 xl:col-span-4 topo-split-desktop'
+                    : 'lg:col-span-5 xl:col-span-5 topo-split-desktop'
                 }`}
               >
                 <InteractiveTopo
@@ -1040,26 +1060,41 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
                   onResetFilters={handleResetAllFilters}
                 />
+
+                {/* Spacious Route Details Panel below Topo (Hidden on mobile where table expands inline) */}
+                <div className="hidden lg:block">
+                  <SelectedRouteDetailPanel
+                    route={selectedRoute}
+                    isGr={isGr}
+                    userMode={userMode}
+                    getEntry={getEntry}
+                    onClose={() => handleSelectRoute(null)}
+                    onToggleFavourite={toggleFavourite}
+                    onToggleTickStatus={toggleTickStatus}
+                    onUpdateEntry={updateEntry}
+                    onFilterBySetter={(setter) =>
+                      setFilters((p) => ({
+                        ...p,
+                        setter: p.setter === setter ? 'all' : setter,
+                      }))
+                    }
+                    onFilterByYear={(year) =>
+                      setFilters((p) => ({
+                        ...p,
+                        year: p.year === year ? 'all' : year,
+                      }))
+                    }
+                  />
+                </div>
               </div>
 
-              {/* Column 2: Filter Bar + Grade Histogram & Crag Stats + Route List/Table */}
+              {/* Column 2: Grade Histogram & Crag Stats -> Sticky [Filter Bar + Table] */}
               <div
                 className={`min-w-0 ${
-                  isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-8 xl:col-span-8'
+                  isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-7 xl:col-span-7'
                 }`}
               >
-                <RouteFilterBar
-                  isGr={isGr}
-                  userMode={userMode}
-                  filters={filters}
-                  onChangeFilters={setFilters}
-                  onResetAllFilters={() => setFilters(INITIAL_FILTERS)}
-                  onSelectGradeTier={handleSelectGradeTier}
-                  activeFilterCount={activeFilterCount}
-                  totalCount={KOKKINI_PISTA_ROUTES.length}
-                  filteredCount={filteredRoutes.length}
-                />
-
+                {/* 1. Grade Histogram & Crag Stats (Balanced 6 / 6 cols on xl) */}
                 <GradeChartAndStats
                   isGr={isGr}
                   userMode={userMode}
@@ -1075,7 +1110,28 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   onOpenLogbookModal={() => setLogbookModalOpen(true)}
                 />
 
+                {/* 2. Sticky Filter Bar directly docked to Table */}
+                <div
+                  ref={stickyHeaderRefA}
+                  className="sticky top-0 z-30 bg-gray-50 pt-2 pb-0 mt-3"
+                >
+                  <RouteFilterBar
+                    isGr={isGr}
+                    userMode={userMode}
+                    filters={filters}
+                    onChangeFilters={setFilters}
+                    onResetAllFilters={() => setFilters(INITIAL_FILTERS)}
+                    onSelectGradeTier={handleSelectGradeTier}
+                    activeFilterCount={activeFilterCount}
+                    totalCount={KOKKINI_PISTA_ROUTES.length}
+                    filteredCount={filteredRoutes.length}
+                    isDockedWithTable={true}
+                  />
+                </div>
+
+                {/* 3. Route Table docked with Filter Bar */}
                 <RouteListAndTable
+                  stickyTopOffset={stickyTopOffsetA}
                   isGr={isGr}
                   userMode={userMode}
                   routes={filteredRoutes}
@@ -1097,6 +1153,8 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                       year: p.year === year ? 'all' : year,
                     }))
                   }
+                  isDockedWithFilterBar={true}
+                  disableRowAccordionOnDesktop={true}
                 />
               </div>
             </div>

@@ -45,6 +45,7 @@ export default function RouteListAndTable({
   onFilterBySetter,
   onFilterByYear,
   isDockedWithFilterBar = false,
+  disableRowAccordionOnDesktop = false,
 }) {
   const [sortField, setSortField] = useState('order');
   const [sortDir, setSortDir] = useState('asc');
@@ -286,7 +287,7 @@ export default function RouteListAndTable({
                     onClick={() => onSelectRoute(isSelected ? null : route, { scroll: false })}
                     className={`cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-blue-50/90 font-medium'
+                        ? 'bg-blue-100/75 font-medium ring-1 ring-inset ring-[#1e3a8a]/30'
                         : route.isTopRopeOnly
                         ? 'bg-amber-50/30 hover:bg-amber-50/60'
                         : 'hover:bg-gray-50'
@@ -465,7 +466,11 @@ export default function RouteListAndTable({
 
                   {/* Expandable Accordion Drawer Row */}
                   {isSelected && (
-                    <tr className="bg-blue-50/50 border-b border-blue-200/60">
+                    <tr
+                      className={`${
+                        disableRowAccordionOnDesktop ? 'table-row lg:hidden ' : ''
+                      }bg-blue-50/50 border-b border-blue-200/60`}
+                    >
                       <td colSpan={colSpanTotal} className="p-3 sm:p-4 text-xs">
                         <div className="space-y-3">
                           {/* Mobile Route Specs Strip (Hidden on desktop since already in table columns) */}
