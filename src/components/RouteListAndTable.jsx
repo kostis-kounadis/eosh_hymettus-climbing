@@ -44,6 +44,7 @@ export default function RouteListAndTable({
   onUpdateEntry,
   onFilterBySetter,
   onFilterByYear,
+  isDockedWithFilterBar = false,
 }) {
   const [sortField, setSortField] = useState('order');
   const [sortDir, setSortDir] = useState('asc');
@@ -118,7 +119,13 @@ export default function RouteListAndTable({
   const colSpanTotal = isMemberOrAdmin ? 8 : 7;
 
   return (
-    <Card className="border border-gray-200 bg-white shadow-2xs">
+    <Card
+      className={`border border-gray-200 bg-white shadow-2xs ${
+        isDockedWithFilterBar
+          ? 'rounded-t-none rounded-b-xl border-t-0'
+          : 'rounded-xl'
+      }`}
+    >
       <div className="w-full">
         <table className="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
@@ -126,7 +133,7 @@ export default function RouteListAndTable({
               {/* # Column */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 sm:px-3 text-center w-[36px] sm:w-[44px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 sm:px-3 text-center w-[36px] sm:w-[44px]"
               >
                 <button
                   type="button"
@@ -142,7 +149,7 @@ export default function RouteListAndTable({
               {/* Route Name Column (Click to sort by Name or Stars) */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2.5 sm:px-3 min-w-[130px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2.5 sm:px-3 min-w-[130px]"
               >
                 <button
                   type="button"
@@ -158,7 +165,7 @@ export default function RouteListAndTable({
               {/* Combined Grade Column */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1 sm:px-2 text-center whitespace-nowrap w-[88px] sm:w-[100px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1 sm:px-2 text-center whitespace-nowrap w-[88px] sm:w-[100px]"
               >
                 <button
                   type="button"
@@ -174,7 +181,7 @@ export default function RouteListAndTable({
               {/* Length (Ανάπτ.) Column - Hidden on mobile, visible from sm (640px) */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1.5 text-center whitespace-nowrap w-[60px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1.5 text-center whitespace-nowrap w-[60px]"
               >
                 <button
                   type="button"
@@ -203,7 +210,7 @@ export default function RouteListAndTable({
               {/* Protection / Bolts (Ασφ.) Column - Hidden on mobile, visible from sm (640px) */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1.5 text-center whitespace-nowrap w-[64px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-1.5 text-center whitespace-nowrap w-[64px]"
               >
                 <button
                   type="button"
@@ -232,7 +239,7 @@ export default function RouteListAndTable({
               {/* Route Setters Column - Hidden on mobile & small tablet, visible from md (768px) */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="hidden md:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-3 text-center min-w-[130px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="hidden md:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-3 text-center min-w-[130px]"
                 title={isGr ? 'Ανοίξαντες διαδρομής' : 'Route Setters'}
               >
                 {isGr ? 'Ανοίξαντες' : 'Route Setters'}
@@ -241,7 +248,7 @@ export default function RouteListAndTable({
               {/* Year Column - Hidden on mobile, visible from sm (640px) */}
               <th
                 style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 text-center whitespace-nowrap w-[60px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                className="hidden sm:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 text-center whitespace-nowrap w-[60px]"
               >
                 <button
                   type="button"
@@ -258,7 +265,7 @@ export default function RouteListAndTable({
               {isMemberOrAdmin && (
                 <th
                   style={{ top: stickyTopOffset ? `${stickyTopOffset}px` : undefined }}
-                  className="hidden md:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 text-center whitespace-nowrap w-[70px] before:content-[''] before:absolute before:inset-x-0 before:-top-3 before:h-3 before:bg-gray-100"
+                  className="hidden md:table-cell sticky z-20 bg-gray-100 border-b border-gray-200 py-2 sm:py-2.5 px-2 text-center whitespace-nowrap w-[70px]"
                 >
                   <span>{isGr ? 'Logbook' : 'Logbook'}</span>
                 </th>

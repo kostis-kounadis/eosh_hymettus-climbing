@@ -934,6 +934,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                   activeFilterCount={activeFilterCount}
                   totalCount={KOKKINI_PISTA_ROUTES.length}
                   filteredCount={filteredRoutes.length}
+                  isDockedWithTable={true}
                 />
               </div>
 
@@ -961,6 +962,7 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                     year: p.year === year ? 'all' : year,
                   }))
                 }
+                isDockedWithFilterBar={true}
               />
             </div>
           </div>

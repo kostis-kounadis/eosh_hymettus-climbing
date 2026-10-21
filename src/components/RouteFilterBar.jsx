@@ -27,6 +27,7 @@ export default function RouteFilterBar({
   activeFilterCount,
   totalCount,
   filteredCount,
+  isDockedWithTable = false,
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
@@ -36,7 +37,11 @@ export default function RouteFilterBar({
   };
 
   return (
-    <Card className="border border-gray-200 bg-white shadow-2xs">
+    <Card
+      className={`border border-gray-200 bg-white shadow-2xs ${
+        isDockedWithTable ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'
+      }`}
+    >
       <CardContent className="px-3 py-2 space-y-2">
         {/* Compact Top Row: Left: Φίλτρα | Right: 'Γρήγορα φίλτρα:' + 3 color-coded buttons */}
         <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
