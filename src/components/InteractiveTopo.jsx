@@ -29,7 +29,7 @@ import {
 } from '../data/kokkiniPistaRoutes';
 import { TICK_TYPES, isCompletedTick } from '../hooks/useClimberLogbook';
 
-const MIN_ZOOM = 1;
+const MIN_ZOOM_FALLBACK = 0.25;
 const MAX_ZOOM = 4;
 
 // Convert array of [xPx, yPx] pixel points into a smooth SVG path string
@@ -110,33 +110,32 @@ export default function InteractiveTopo({
       setInternalExpanded(next);
     }
     if (next) {
-      // In expanded mobile mode (h-[60vh]), the photo expands naturally across width (~800px).
-      // At zoom 1x, the user can immediately drag left and right to see all routes.
-      // If a route is selected, zoom slightly (1.25x) and center on it.
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-      const targetZoom = isMobile
-        ? (selectedRoute ? 1.25 : 1)
-        : (selectedRoute ? 1.45 : 1.3);
-      setZoomLevel(targetZoom);
-      if (selectedRoute) {
-        setTimeout(() => centerOnRoute(selectedRoute, targetZoom), 60);
-      } else {
-        setTimeout(() => {
-          const vp = viewportRef.current;
-          const layer = layerRef.current;
-          if (vp && layer) {
-            const vw = vp.clientWidth;
-            const vh = vp.clientHeight;
-            const layerW = layer.offsetWidth;
-            const layerH = layer.offsetHeight;
+      // In expanded mode:
+      // If a route is selected, zoom to that route and center on it.
+      // If NO route is selected, fit the entire photo inside the viewport!
+      setTimeout(() => {
+        const vp = viewportRef.current;
+        const layer = layerRef.current;
+        if (vp && layer) {
+          const vw = vp.clientWidth;
+          const vh = vp.clientHeight;
+          const layerW = layer.offsetWidth;
+          const layerH = layer.offsetHeight;
+          const fit = Math.min(1, Number(Math.min(vw / layerW, vh / layerH).toFixed(3)));
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+          const targetZoom = selectedRoute
+            ? (isMobile ? Math.max(fit, 1.25) : Math.max(fit, 1.35))
+            : fit;
+          setZoomLevel(targetZoom);
+          if (selectedRoute) {
+            centerOnRoute(selectedRoute, targetZoom);
+          } else {
             const midX = (vw - layerW * targetZoom) / 2;
             const midY = (vh - layerH * targetZoom) / 2;
             setPan(clampPan(midX, midY, targetZoom));
-          } else {
-            setPan({ x: 0, y: 0 });
           }
-        }, 60);
-      }
+        }
+      }, 60);
     } else {
       // Reset zoom back to 1
       setZoomLevel(1);
@@ -243,6 +242,25 @@ export default function InteractiveTopo({
     };
   }, []);
 
+  // Scale at which the entire layer fits inside the viewport box (both width and height)
+  const getFitScale = useCallback(() => {
+    const vp = viewportRef.current;
+    const layer = layerRef.current;
+    if (!vp || !layer) return 1;
+    const vw = vp.clientWidth;
+    const vh = vp.clientHeight;
+    const layerW = layer.offsetWidth;
+    const layerH = layer.offsetHeight;
+    if (!layerW || !layerH) return 1;
+    return Math.min(1, Number(Math.min(vw / layerW, vh / layerH).toFixed(3)));
+  }, []);
+
+  // Minimum allowed zoom: allows zooming out to fitScale (with a 15% margin for comfortable framing), down to 0.25
+  const getMinZoom = useCallback(() => {
+    const fit = getFitScale();
+    return Math.min(1, Math.max(MIN_ZOOM_FALLBACK, Number((fit * 0.85).toFixed(3))));
+  }, [getFitScale]);
+
   // Check if content is wider or taller than the viewport and can be panned
   const canPanContent = useCallback(
     (scale = zoomRef.current) => {
@@ -265,15 +283,17 @@ export default function InteractiveTopo({
     (targetScale, fx, fy) => {
       const vp = viewportRef.current;
       const layer = layerRef.current;
-      const nextScale = clamp(Number(targetScale.toFixed(3)), MIN_ZOOM, MAX_ZOOM);
+      const minZ = getMinZoom();
+      const nextScale = clamp(Number(targetScale.toFixed(3)), minZ, MAX_ZOOM);
       const layerW = layer?.offsetWidth || vp?.clientWidth || 0;
       const layerH = layer?.offsetHeight || vp?.clientHeight || 0;
       const vw = vp?.clientWidth || 0;
       const vh = vp?.clientHeight || 0;
 
-      if (!vp || (nextScale <= 1.001 && layerW <= vw && layerH <= vh)) {
-        setZoomLevel(1);
-        setPan(clampPan(0, 0, 1));
+      if (!vp) return;
+      if (nextScale <= minZ + 0.005 && layerW * minZ <= vw && layerH * minZ <= vh) {
+        setZoomLevel(minZ);
+        setPan(clampPan(0, 0, minZ));
         return;
       }
       const prevScale = zoomRef.current;
@@ -291,7 +311,7 @@ export default function InteractiveTopo({
       setZoomLevel(nextScale);
       setPan(clampPan(rawX, rawY, nextScale));
     },
-    [clampPan]
+    [clampPan, getMinZoom]
   );
 
   // Center pan on a specific route's midpoint at a given scale
@@ -320,29 +340,35 @@ export default function InteractiveTopo({
   // Re-clamp pan if box size (isExpandedSize) or wall changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (zoomRef.current > 1) {
-        if (selectedRoute && selectedRoute.wall === activeWall) {
-          centerOnRoute(selectedRoute, zoomRef.current);
-        } else {
-          setPan((prev) => clampPan(prev.x, prev.y, zoomRef.current));
-        }
+      const fit = getFitScale();
+      if (selectedRoute && selectedRoute.wall === activeWall) {
+        const targetZoom = Math.max(fit, zoomRef.current);
+        setZoomLevel(targetZoom);
+        centerOnRoute(selectedRoute, targetZoom);
+      } else if (isExpandedSize) {
+        // In expanded mode without selected route, fit the new wall cleanly inside the viewport box
+        setZoomLevel(fit);
+        setPan(clampPan(0, 0, fit));
+      } else if (zoomRef.current > 1) {
+        setPan((prev) => clampPan(prev.x, prev.y, zoomRef.current));
       }
     }, 50);
     return () => clearTimeout(timer);
-  }, [isExpandedSize, activeWall, selectedRoute, centerOnRoute, clampPan]);
+  }, [isExpandedSize, activeWall, selectedRoute, centerOnRoute, clampPan, getFitScale]);
 
-  // Keep layer centered on viewport resize when zoom is 1
+  // Keep layer centered on viewport resize when zoom is at fit scale
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => {
-      if (zoomRef.current <= 1.01) {
-        setPan((prev) => clampPan(prev.x, prev.y, 1));
+      const fit = getFitScale();
+      if (zoomRef.current <= fit * 1.05) {
+        setPan((prev) => clampPan(prev.x, prev.y, zoomRef.current));
       }
     });
     ro.observe(vp);
     return () => ro.disconnect();
-  }, [clampPan]);
+  }, [clampPan, getFitScale]);
 
   // Detect stuck state using IntersectionObserver fallback (Modern Web Guidance: state-aware-sticky-headers)
   useEffect(() => {
@@ -455,9 +481,10 @@ export default function InteractiveTopo({
 
       const { startDist, startScale, startPan, startMidX, startMidY } =
         pinchStateRef.current;
+      const minZ = getMinZoom();
       const nextScale = clamp(
         Number((startScale * (dist / startDist)).toFixed(3)),
-        MIN_ZOOM,
+        minZ,
         MAX_ZOOM
       );
 
@@ -543,13 +570,14 @@ export default function InteractiveTopo({
     }
   };
 
-  // Top-right Zoom Toggle button: cycles 1× -> 1.6× -> 2.2× -> 1× (resizing ONLY the photo/topo inside the box)
+  // Top-right Zoom Toggle button: cycles fit -> 1.6× -> 2.2× -> fit (resizing ONLY the photo/topo inside the box)
   const handleCycleZoomButton = () => {
     const cur = zoomRef.current;
-    const nextScale = cur < 1.3 ? 1.6 : cur < 2.0 ? 2.2 : 1;
-    if (nextScale === 1) {
-      setZoomLevel(1);
-      setPan((prev) => clampPan(prev.x, prev.y, 1));
+    const fit = getFitScale();
+    const nextScale = cur < fit * 1.25 ? fit * 1.6 : cur < fit * 1.9 ? fit * 2.2 : fit;
+    if (Math.abs(nextScale - fit) < 0.02) {
+      setZoomLevel(fit);
+      setPan((prev) => clampPan(prev.x, prev.y, fit));
       return;
     }
     const vp = viewportRef.current;
@@ -574,9 +602,10 @@ export default function InteractiveTopo({
   };
 
   const handleStepZoom = (delta) => {
+    const minZ = getMinZoom();
     const nextScale = clamp(
       Number((zoomRef.current + delta).toFixed(2)),
-      MIN_ZOOM,
+      minZ,
       MAX_ZOOM
     );
     applyZoomAtPoint(nextScale);
@@ -589,11 +618,12 @@ export default function InteractiveTopo({
     const rect = vp.getBoundingClientRect();
     const fx = e.clientX - rect.left;
     const fy = e.clientY - rect.top;
-    if (zoomRef.current > 1.2) {
-      setZoomLevel(1);
-      setPan(clampPan(0, 0, 1));
+    const fit = getFitScale();
+    if (zoomRef.current > fit * 1.15) {
+      setZoomLevel(fit);
+      setPan(clampPan(0, 0, fit));
     } else {
-      applyZoomAtPoint(2.2, fx, fy);
+      applyZoomAtPoint(Math.max(2.0, fit * 2.2), fx, fy);
     }
   };
 
@@ -640,6 +670,7 @@ export default function InteractiveTopo({
   const activeImageSrc =
     customWallImages[activeWall] || wallConfig.imageClean;
 
+  const fitScale = isExpandedSize ? getFitScale() : 1;
   const formattedZoom = `${Number(zoomLevel.toFixed(1))}×`;
 
   return (
@@ -1134,18 +1165,25 @@ export default function InteractiveTopo({
               </button>
 
               {/* Reset Zoom pill: Bottom-Left on Mobile, Bottom-Right on Desktop */}
-              {zoomLevel > 1.05 && (
+              {Math.abs(zoomLevel - fitScale) > 0.04 && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setZoomLevel(1);
-                    setPan(clampPan(0, 0, 1));
+                    setZoomLevel(fitScale);
+                    setPan(clampPan(0, 0, fitScale));
                   }}
                   className="absolute bottom-2 left-2 sm:left-auto sm:right-2 z-20 h-7 px-2 rounded-lg bg-black/75 hover:bg-black text-white text-[11px] font-semibold backdrop-blur-md border border-white/20 shadow-md inline-flex items-center gap-1 pointer-events-auto"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>1× ({formattedZoom})</span>
+                  <span>
+                    {fitScale < 0.95
+                      ? isGr
+                        ? 'Πλήρες'
+                        : 'Fit'
+                      : '1×'}{' '}
+                    ({formattedZoom})
+                  </span>
                 </button>
               )}
             </div>

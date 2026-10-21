@@ -30,11 +30,11 @@ export const MAKIS_WALLS = [
     titleEn: "Makis' Wall (Main Wall)",
     subtitleGr: '9 διαδρομές Top Rope (Ιδοσίδης 1963 & Τιτόπουλος/Bailey 1990)',
     subtitleEn: '9 Top Rope lines (Idosidis 1963 & Titopoulos/Bailey 1990)',
-    imageClean: null, // ARGON TASK: Place cleaned photo at /topos/toichos-maki-clean.webp
-    imageOriginal: null, // ARGON TASK: Place original photo at /topos/toichos-maki.webp
-    width: 1470,
-    height: 850,
-    pendingArgon: true,
+    imageClean: './topos/toichos-maki-clean.webp',
+    imageOriginal: './topos/toichos-maki.webp',
+    width: 1474,
+    height: 1031,
+    pendingArgon: false,
   },
 ];
 
@@ -102,7 +102,7 @@ export const TOICHOS_MAKI_ROUTES = [
     isClassic: true,
     noteGr: 'Ιστορική γραμμή του 1963 στην αριστερή πλευρά του τοίχου. Top rope, ρελέ σε δέντρο στο πατάρι.',
     noteEn: 'Historic 1963 route on the left side of the wall. Top rope, anchor on tree above.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[7.2, 89.2], [9.4, 80.5], [10.0, 69.5], [12.3, 60.0], [14.3, 50.0], [15.5, 44.0], [14.8, 36.8]],
   },
   {
     id: 'tm-2',
@@ -127,7 +127,7 @@ export const TOICHOS_MAKI_ROUTES = [
     isClassic: true,
     noteGr: 'Εκπαιδευτική γραμμή IV σε συμπαγή βράχο. Top rope χωρίς μόνιμο ρελέ.',
     noteEn: 'Educational slab climb IV on solid limestone. Top rope with natural anchor.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[18.8, 89.5], [20.2, 80.0], [20.9, 69.0], [21.3, 58.0], [22.5, 45.0], [24.2, 39.0], [24.0, 30.2]],
   },
   {
     id: 'tm-3',
@@ -152,7 +152,7 @@ export const TOICHOS_MAKI_ROUTES = [
     isClassic: true,
     noteGr: 'Κάθετο πέρασμα 8μ, καλά πατήματα, ιδανικό για αρχάριους αναρριχητές.',
     noteEn: 'Vertical 8m face with good footholds, ideal for beginner training.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[28.7, 88.8], [29.8, 80.0], [30.8, 70.0], [33.5, 58.0], [35.2, 43.0], [34.8, 33.0], [33.0, 23.8]],
   },
   {
     id: 'tm-4',
@@ -176,7 +176,7 @@ export const TOICHOS_MAKI_ROUTES = [
     defaultStars: 2,
     noteGr: 'Τεχνικό πέρασμα 5c με μικρά πιασίματα. Top rope.',
     noteEn: 'Technical 5c crux on delicate crimps. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[38.8, 89.2], [39.6, 78.0], [39.5, 69.0], [40.8, 56.0], [42.6, 46.0], [42.6, 31.0], [41.3, 15.2]],
   },
   {
     id: 'tm-5',
@@ -200,7 +200,7 @@ export const TOICHOS_MAKI_ROUTES = [
     defaultStars: 3,
     noteGr: 'Απαιτητική κάθετη γραμμή 6b στο κέντρο του τοίχου. Top rope.',
     noteEn: 'Demanding vertical 6b sequence through the wall center. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[47.8, 88.5], [47.2, 78.0], [46.5, 67.0], [45.5, 58.0], [47.0, 40.0], [46.2, 26.0], [47.5, 20.0], [47.2, 11.2]],
   },
   {
     id: 'tm-6',
@@ -224,7 +224,7 @@ export const TOICHOS_MAKI_ROUTES = [
     defaultStars: 3,
     noteGr: 'Συνεχής τεχνική αναρρίχηση 6b σε θετικά πιασίματα. Top rope.',
     noteEn: 'Continuous technical 6b climbing on positive holds. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[64.8, 83.5], [64.4, 70.0], [63.2, 60.0], [58.0, 52.0], [55.5, 43.0], [56.2, 27.0], [57.8, 16.0], [57.2, 2.2]],
   },
   {
     id: 'tm-7',
@@ -248,7 +248,7 @@ export const TOICHOS_MAKI_ROUTES = [
     defaultStars: 2,
     noteGr: 'Κάθετη έξοδος σε συμπαγή ασβεστόλιθο. Top rope.',
     noteEn: 'Direct vertical finish on compact grey rock. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[68.8, 81.2], [68.2, 69.0], [66.8, 59.0], [64.5, 47.0], [62.5, 35.0], [62.2, 24.0], [64.8, 10.0], [63.8, 1.5]],
   },
   {
     id: 'tm-8',
@@ -273,7 +273,7 @@ export const TOICHOS_MAKI_ROUTES = [
     isClassic: true,
     noteGr: 'Κλασική γραμμή 5c του 1963, όμορφο ανάγλυφο βράχου. Top rope.',
     noteEn: 'Classic 1963 5c line on pleasant featured rock. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[75.5, 80.5], [75.2, 68.0], [75.3, 56.0], [76.2, 45.0], [78.5, 34.0], [78.5, 16.0], [77.3, 8.0], [77.3, 1.5]],
   },
   {
     id: 'tm-9',
@@ -297,7 +297,7 @@ export const TOICHOS_MAKI_ROUTES = [
     defaultStars: 2,
     noteGr: 'Δεξιά άκρη του πεδίου, σύντομο πέρασμα 6μ σε καλά πιασίματα. Top rope.',
     noteEn: 'Far-right route of the crag, short 6m line on good jugs. Top rope.',
-    svgPath: null, // ARGON TASK: Calibrate SVG coordinates
+    svgPath: [[95.2, 80.8], [94.2, 70.0], [94.4, 60.0], [93.2, 46.0], [93.8, 30.0], [94.6, 17.0], [95.4, 2.0]],
   },
 ];
 

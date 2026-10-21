@@ -27,11 +27,11 @@ export const PRASINI_WALLS = [
     titleEn: 'Prasini Pista (Main Vertical Wall)',
     subtitleGr: '10 αθλητικές διαδρομές (Κουνιάκης, Bailey, Τιτόπουλος 1990–1992)',
     subtitleEn: '10 sport routes (Kouniakis, Bailey, Titopoulos 1990–1992)',
-    imageClean: null, // ARGON TASK: Place cleaned photo at /topos/prasini-pista-clean.webp
-    imageOriginal: null, // ARGON TASK: Place original photo at /topos/prasini-pista.webp
-    width: 1470,
-    height: 850,
-    pendingArgon: true,
+    imageClean: './topos/prasini-pista-clean.webp',
+    imageOriginal: './topos/prasini-pista.webp',
+    width: 1474,
+    height: 1105,
+    pendingArgon: false,
   },
 ];
 
@@ -98,9 +98,9 @@ export const PRASINI_PISTA_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'Β. Μήτσιου'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Τεχνική κάθετη γραμμή 6b στην αριστερή πλευρά της Πράσινης Πίστας.',
-    noteEn: 'Technical vertical 6b line on the left side of Prasini Pista.',
-    svgPath: null,
+    noteGr: 'Τεχνική κάθετη γραμμή 6b στη δεξιά πλευρά της Πράσινης Πίστας.',
+    noteEn: 'Technical vertical 6b line on the right side of Prasini Pista.',
+    svgPath: [[72.1, 63.0], [72.4, 57.5], [70.8, 52.5], [71.4, 48.0], [71.8, 44.5]],
   },
   {
     id: 'pp-2',
@@ -124,7 +124,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Όμορφη προθέρμανση 5a σε θετικά πατήματα και σταθερό βράχο.',
     noteEn: 'Enjoyable 5a warm-up with positive footholds on solid rock.',
-    svgPath: null,
+    svgPath: [[69.2, 62.5], [69.4, 55.0], [69.5, 48.0], [69.6, 42.5]],
   },
   {
     id: 'pp-2a',
@@ -148,7 +148,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Συνεχές σκαρφάλωμα 6a+ με λεπτά πατήματα στα 14μ.',
     noteEn: 'Sustained 6a+ face climbing on delicate edges over 14m.',
-    svgPath: null,
+    svgPath: [[66.5, 61.0], [66.2, 55.0], [66.5, 48.0], [66.4, 40.8]],
   },
   {
     id: 'pp-3',
@@ -172,7 +172,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Κλασική γραμμή 5c του διδύμου Κουνιάκη - Bailey με 7 ασφάλειες.',
     noteEn: 'Classic 5c line by Kouniakis - Bailey equipped with 7 bolts.',
-    svgPath: null,
+    svgPath: [[62.4, 59.8], [63.2, 53.0], [64.2, 47.0], [64.4, 40.5]],
   },
   {
     id: 'pp-4',
@@ -196,7 +196,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Ευχάριστη διαδρομή 5b με συνεχή ροή κινήσεων.',
     noteEn: 'Pleasant 5b climb with fluid, rhythmic moves.',
-    svgPath: null,
+    svgPath: [[58.4, 59.2], [59.2, 54.0], [60.6, 48.0], [61.2, 43.0], [62.2, 39.2]],
   },
   {
     id: 'pp-5',
@@ -221,7 +221,7 @@ export const PRASINI_PISTA_ROUTES = [
     isClassic: true,
     noteGr: 'Η πιο απαιτητική και χαρακτηριστική γραμμή της Πράσινης Πίστας (6c+). Τεχνικό πέρασμα (crux) σε μικρά πατήματα και λεπτά πιασίματα.',
     noteEn: 'The benchmark line of Prasini Pista (6c+). Technical crux on small edges and micro-crimps.',
-    svgPath: null,
+    svgPath: [[56.2, 58.2], [55.8, 50.0], [56.0, 44.0], [56.8, 40.0], [57.6, 37.2]],
   },
   {
     id: 'pp-6',
@@ -245,7 +245,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Όμορφη γραμμή 5b 15 μέτρων σε συμπαγή ασβεστόλιθο.',
     noteEn: 'Solid 15m line 5b on compact rock.',
-    svgPath: null,
+    svgPath: [[48.0, 52.0], [50.4, 47.0], [53.2, 41.5], [54.6, 37.0]],
   },
   {
     id: 'pp-7',
@@ -269,7 +269,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 3,
     noteGr: 'Απαιτητική κάθετη γραμμή 6b+ με δυναμικό πέρασμα.',
     noteEn: 'Demanding vertical 6b+ climb with a dynamic crux sequence.',
-    svgPath: null,
+    svgPath: [[38.6, 50.5], [40.0, 46.0], [41.0, 41.0], [41.2, 35.8]],
   },
   {
     id: 'pp-8',
@@ -293,7 +293,7 @@ export const PRASINI_PISTA_ROUTES = [
     defaultStars: 2,
     noteGr: 'Σύντομη γραμμή 6a 11μ με 4 ασφάλειες.',
     noteEn: 'Short 6a line 11m with 4 bolts.',
-    svgPath: null,
+    svgPath: [[25.0, 46.2], [25.6, 42.0], [26.2, 38.0], [27.0, 34.2]],
   },
   {
     id: 'pp-9',
@@ -315,9 +315,9 @@ export const PRASINI_PISTA_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'Δ. Κορρές'],
     year: 1991,
     defaultStars: 2,
-    noteGr: 'Δεξιά έξοδος του τοίχου, έντονο τεχνικό boulder 6c στα 10μ.',
-    noteEn: 'Right-hand finish of the wall, intense technical 6c sequence over 10m.',
-    svgPath: null,
+    noteGr: 'Αριστερή άκρη του τοίχου, έντονο τεχνικό boulder 6c στα 10μ.',
+    noteEn: 'Left-hand finish of the wall, intense technical 6c sequence over 10m.',
+    svgPath: [[10.0, 43.5], [10.4, 39.0], [11.2, 35.0], [11.6, 30.8]],
   },
 ];
 
