@@ -51,6 +51,8 @@ export default function SelectedRouteDetailPanel({
   onUpdateEntry,
   onFilterBySetter,
   onFilterByYear,
+  cragInfo = null,
+  routes = null,
 }) {
   const [copied, setCopied] = useState(false);
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
@@ -96,21 +98,26 @@ export default function SelectedRouteDetailPanel({
                 {isGr ? 'Διαδρομές' : 'Routes'}
               </span>
               <span className="font-bold text-gray-900">
-                40 {isGr ? '(37 Sport · 3 TR*)' : '(37 Sport · 3 TR*)'}
+                {routes ? routes.length : 40}{' '}
+                {isGr
+                  ? `(${routes ? routes.filter((r) => !r.isTopRopeOnly).length : 37} Sport · ${routes ? routes.filter((r) => r.isTopRopeOnly).length : 3} TR*)`
+                  : `(${routes ? routes.filter((r) => !r.isTopRopeOnly).length : 37} Sport · ${routes ? routes.filter((r) => r.isTopRopeOnly).length : 3} TR*)`}
               </span>
             </div>
             <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
               <span className="font-semibold text-gray-500 block">
                 {isGr ? 'Βαθμολογίες' : 'Grades'}
               </span>
-              <span className="font-bold text-gray-900">5a – 7a (V – VIII)</span>
+              <span className="font-bold text-gray-900">
+                {cragInfo?.gradeSpan || (isGr ? cragInfo?.gradesGr : cragInfo?.gradesEn) || '5a – 7a'}
+              </span>
             </div>
             <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
               <span className="font-semibold text-gray-500 block">
                 {isGr ? 'Ανάπτυγμα' : 'Length'}
               </span>
               <span className="font-bold text-gray-900">
-                8m – 13m {isGr ? '(σχοινί ≥26m)' : '(rope ≥26m)'}
+                {cragInfo?.height || (isGr ? cragInfo?.heightGr : cragInfo?.heightEn) || '8m – 13m'}
               </span>
             </div>
             <div className="p-2 rounded-md bg-gray-50 border border-gray-100">

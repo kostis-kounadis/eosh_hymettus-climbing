@@ -152,58 +152,109 @@ export default function GradeChartAndStats({
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
   const sunStatus = useMemo(() => getHymettusSunStatus(isGr), [isGr]);
 
-  const activeGradeOrder = useMemo(() => {
+  const gradeColumns = useMemo(() => {
     const present = new Set(routes.map((r) => r.french).filter(Boolean));
-    const hasExternal = Array.from(present).some(
-      (g) => !FRENCH_GRADE_ORDER.includes(g)
-    );
-    if (!hasExternal) return FRENCH_GRADE_ORDER;
-
     const indices = Array.from(present)
       .map((g) => HYMETTUS_ALL_GRADES.indexOf(g))
       .filter((i) => i >= 0);
-    if (indices.length === 0) return FRENCH_GRADE_ORDER;
+    if (indices.length === 0) return [];
     const minIdx = Math.min(...indices);
     const maxIdx = Math.max(...indices);
-    return HYMETTUS_ALL_GRADES.slice(minIdx, maxIdx + 1);
-  }, [routes]);
+    const fullSpan = HYMETTUS_ALL_GRADES.slice(minIdx, maxIdx + 1);
 
-  const gradeStats = useMemo(() => {
-    const map = {};
-    activeGradeOrder.forEach((g) => {
-      map[g] = {
+    const rawStats = {};
+    fullSpan.forEach((g) => {
+      rawStats[g] = {
         french: g,
         uiaa: HYMETTUS_UIAA_MAP[g] || UIAA_BY_FRENCH[g] || '—',
         total: 0,
         completed: 0,
         tier: getGradeTier(g),
+        isGap: false,
       };
     });
+
     routes.forEach((r) => {
-      if (!map[r.french]) return;
-      map[r.french].total += 1;
+      if (!rawStats[r.french]) return;
+      rawStats[r.french].total += 1;
       if (isMemberOrAdmin) {
         const entry = getEntry(r.id);
         if (isCompletedTick(entry.status)) {
-          map[r.french].completed += 1;
+          rawStats[r.french].completed += 1;
         }
       }
     });
-    return activeGradeOrder.map((g) => map[g]);
-  }, [routes, activeGradeOrder, getEntry, isMemberOrAdmin]);
+
+    // Group 2 or more consecutive 0-count grades into a single compact gap column
+    const columns = [];
+    let zeroRun = [];
+
+    const flushZeroRun = () => {
+      if (zeroRun.length === 0) return;
+      if (zeroRun.length === 1) {
+        columns.push(rawStats[zeroRun[0]]);
+      } else {
+        const first = zeroRun[0];
+        const last = zeroRun[zeroRun.length - 1];
+        columns.push({
+          isGap: true,
+          french: `${first}–${last}`,
+          uiaa: `${rawStats[first].uiaa}–${rawStats[last].uiaa}`,
+          total: 0,
+          completed: 0,
+          tier: 'gap',
+          grades: [...zeroRun],
+        });
+      }
+      zeroRun = [];
+    };
+
+    fullSpan.forEach((g) => {
+      if (rawStats[g].total === 0) {
+        zeroRun.push(g);
+      } else {
+        flushZeroRun();
+        columns.push(rawStats[g]);
+      }
+    });
+    flushZeroRun();
+
+    return columns;
+  }, [routes, isMemberOrAdmin, getEntry]);
 
   const maxCount = useMemo(
-    () => Math.max(1, ...gradeStats.map((s) => s.total)),
-    [gradeStats]
+    () => Math.max(1, ...gradeColumns.map((s) => s.total)),
+    [gradeColumns]
   );
 
   const bandCounts = useMemo(() => {
     const counts = { easy: 0, medium: 0, hard: 0, extreme: 0 };
     routes.forEach((r) => {
       const t = getGradeTier(r.french);
-      counts[t] = (counts[t] || 0) + 1;
+      if (counts[t] !== undefined) {
+        counts[t] += 1;
+      }
     });
     return counts;
+  }, [routes]);
+
+  const derivedLengths = useMemo(() => {
+    const lens = routes
+      .map((r) => r.length)
+      .filter((l) => typeof l === 'number' && l > 0);
+    if (lens.length === 0) return '—';
+    const min = Math.min(...lens);
+    const max = Math.max(...lens);
+    return min === max ? `${min}m` : `${min}m – ${max}m`;
+  }, [routes]);
+
+  const derivedQuickdraws = useMemo(() => {
+    const boltsList = routes
+      .map((r) => r.bolts)
+      .filter((b) => typeof b === 'number' && b > 0);
+    if (boltsList.length === 0) return '—';
+    const max = Math.max(...boltsList);
+    return `≤ ${max + 2}`;
   }, [routes]);
 
   const summary = useMemo(() => {
@@ -248,6 +299,127 @@ export default function GradeChartAndStats({
       sent: 'bg-zinc-950/60',
     },
   };
+
+  const renderGradeColumns = (isCompact = false) => (
+    <div
+      tabIndex={0}
+      aria-label={isGr ? 'Κατανομή βαθμολογιών' : 'Grade distribution'}
+      className="flex items-end justify-between gap-0.5 sm:gap-1 w-full pt-2.5 pb-1 border-b border-gray-100 overflow-x-auto sm:overflow-x-visible focus:outline-none"
+    >
+      {gradeColumns.map((col) => {
+        const isSelected = selectedGrades.includes(col.french);
+        const isDimmed = selectedGrades.length > 0 && !isSelected;
+        const heightPct =
+          col.total > 0
+            ? Math.max(12, Math.round((col.total / maxCount) * 100))
+            : 0;
+        const sentPct =
+          isMemberOrAdmin && col.total > 0
+            ? Math.round((col.completed / col.total) * 100)
+            : 0;
+        const colors = barColors[col.tier] || barColors.medium;
+        const isClickable = !col.isGap && col.total > 0;
+
+        return (
+          <div
+            key={col.french}
+            className={`flex flex-col items-center justify-end flex-1 min-w-[18px] sm:min-w-[20px] max-w-[34px] group transition-opacity ${
+              col.isGap || col.total === 0
+                ? 'opacity-40'
+                : isDimmed
+                ? 'opacity-30 hover:opacity-80'
+                : 'opacity-100'
+            }`}
+          >
+            {/* Top Count */}
+            <span
+              className={`text-[9px] sm:text-[10px] font-bold mb-0.5 tabular-nums leading-none ${
+                isSelected
+                  ? 'text-[#1e3a8a] scale-110 font-extrabold'
+                  : col.isGap || col.total === 0
+                  ? 'text-gray-300'
+                  : 'text-gray-700'
+              }`}
+            >
+              {col.isGap
+                ? '—'
+                : isMemberOrAdmin && col.completed > 0
+                ? `${col.completed}/${col.total}`
+                : col.total}
+            </span>
+
+            {/* Bar Section */}
+            <button
+              type="button"
+              disabled={!isClickable}
+              onClick={() => isClickable && onToggleGrade(col.french)}
+              className={`w-full flex flex-col justify-end items-center ${
+                isCompact ? 'h-[72px] sm:h-20' : 'h-24 sm:h-28'
+              } focus:outline-none ${
+                isClickable ? 'cursor-pointer' : 'cursor-default'
+              }`}
+              title={
+                col.isGap
+                  ? `${col.french}: ${isGr ? 'Χωρίς διαδρομές' : 'No routes'}`
+                  : `${col.french} (${col.uiaa}): ${col.total} ${
+                      isGr ? 'διαδρομές' : 'routes'
+                    }`
+              }
+            >
+              {col.isGap ? (
+                <div className="w-full h-0.5 border-b border-dashed border-gray-400 my-0.5" />
+              ) : col.total === 0 ? (
+                <div className="w-full max-w-[14px] sm:max-w-[18px] h-0.5 bg-gray-300 rounded-xs" />
+              ) : (
+                <div
+                  className={`w-full max-w-[14px] sm:max-w-[18px] rounded-t-xs relative overflow-hidden transition-all duration-200 ${
+                    isSelected ? colors.active : colors.base
+                  }`}
+                  style={{ height: `${heightPct}%` }}
+                >
+                  {sentPct > 0 && (
+                    <div
+                      className={`absolute bottom-0 inset-x-0 ${colors.sent} transition-all`}
+                      style={{ height: `${sentPct}%` }}
+                    />
+                  )}
+                </div>
+              )}
+            </button>
+
+            {/* Connected Grade Legend Directly Below */}
+            <button
+              type="button"
+              disabled={!isClickable}
+              onClick={() => isClickable && onToggleGrade(col.french)}
+              className={`w-full flex flex-col items-center mt-1 pt-1 border-t border-gray-100 transition-colors ${
+                !isClickable
+                  ? 'cursor-default'
+                  : isSelected
+                  ? 'bg-[#1e3a8a]/10 text-[#1e3a8a] rounded'
+                  : 'hover:bg-gray-100/70 rounded cursor-pointer'
+              }`}
+            >
+              <span className="text-[10px] sm:text-[11px] font-bold text-gray-900 leading-tight truncate max-w-full">
+                {gradeSystem === 'uiaa'
+                  ? col.isGap
+                    ? '—'
+                    : col.uiaa.split(' ')[0]
+                  : col.french}
+              </span>
+              <span className="text-[8px] sm:text-[9px] text-gray-500 leading-tight truncate max-w-full">
+                {gradeSystem === 'uiaa'
+                  ? col.french
+                  : col.isGap
+                  ? '—'
+                  : col.uiaa.split(' ')[0]}
+              </span>
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (histogramOnly) {
     return (
@@ -314,86 +486,8 @@ export default function GradeChartAndStats({
               )}
             </div>
 
-            {/* Bars Grid (~15% shorter) */}
-            <div className="grid grid-cols-10 gap-1 items-end h-[92px] pt-2.5 pb-1 px-0.5 border-b border-gray-100">
-              {gradeStats.map((g) => {
-                const isSelected = selectedGrades.includes(g.french);
-                const isDimmed = selectedGrades.length > 0 && !isSelected;
-                const heightPct = Math.max(
-                  12,
-                  Math.round((g.total / maxCount) * 100)
-                );
-                const sentPct =
-                  isMemberOrAdmin && g.total > 0
-                    ? Math.round((g.completed / g.total) * 100)
-                    : 0;
-                const colors = barColors[g.tier] || barColors.medium;
-
-                return (
-                  <button
-                    key={g.french}
-                    type="button"
-                    onClick={() => onToggleGrade(g.french)}
-                    className={`group flex flex-col items-center justify-end h-full focus:outline-none transition-opacity ${
-                      isDimmed ? 'opacity-30 hover:opacity-75' : 'opacity-100'
-                    }`}
-                    title={`${g.french} (${g.uiaa}): ${g.total} ${
-                      isGr ? 'διαδρομές' : 'routes'
-                    }`}
-                  >
-                    <span
-                      className={`text-[10px] font-bold mb-0.5 ${
-                        isSelected ? 'text-[#1e3a8a] scale-110' : 'text-gray-700'
-                      }`}
-                    >
-                      {isMemberOrAdmin && g.completed > 0
-                        ? `${g.completed}/${g.total}`
-                        : g.total}
-                    </span>
-
-                    <div
-                      className={`w-full max-w-[24px] rounded-t-md relative overflow-hidden transition-all duration-200 ${
-                        isSelected ? colors.active : colors.base
-                      }`}
-                      style={{ height: `${heightPct}%` }}
-                    >
-                      {sentPct > 0 && (
-                        <div
-                          className={`absolute bottom-0 inset-x-0 ${colors.sent} transition-all`}
-                          style={{ height: `${sentPct}%` }}
-                        />
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* X-axis Labels (French + UIAA) */}
-            <div className="grid grid-cols-10 gap-1 pt-1.5 text-center">
-              {gradeStats.map((g) => {
-                const isSelected = selectedGrades.includes(g.french);
-                return (
-                  <button
-                    key={g.french}
-                    type="button"
-                    onClick={() => onToggleGrade(g.french)}
-                    className={`flex flex-col items-center rounded py-0.5 transition-colors ${
-                      isSelected
-                        ? 'bg-[#1e3a8a]/10 text-[#1e3a8a]'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-[10px] font-bold text-gray-900 leading-tight">
-                      {gradeSystem === 'uiaa' ? g.uiaa.split(' ')[0] : g.french}
-                    </span>
-                    <span className="text-[9px] text-gray-500 leading-tight">
-                      {gradeSystem === 'uiaa' ? g.french : g.uiaa.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* Connected Grade Columns: Bars + Labels together */}
+            {renderGradeColumns(true)}
           </CardContent>
         )}
       </Card>
@@ -498,86 +592,8 @@ export default function GradeChartAndStats({
                   </div>
                 </div>
 
-                {/* Bars Grid */}
-                <div className="grid grid-cols-10 gap-1 sm:gap-2 items-end h-28 sm:h-32 pt-4 pb-1 px-0.5 border-b border-gray-100">
-                  {gradeStats.map((g) => {
-                    const isSelected = selectedGrades.includes(g.french);
-                    const isDimmed = selectedGrades.length > 0 && !isSelected;
-                    const heightPct = Math.max(
-                      12,
-                      Math.round((g.total / maxCount) * 100)
-                    );
-                    const sentPct =
-                      isMemberOrAdmin && g.total > 0
-                        ? Math.round((g.completed / g.total) * 100)
-                        : 0;
-                    const colors = barColors[g.tier] || barColors.orange;
-
-                    return (
-                      <button
-                        key={g.french}
-                        type="button"
-                        onClick={() => onToggleGrade(g.french)}
-                        className={`group flex flex-col items-center justify-end h-full focus:outline-none transition-opacity ${
-                          isDimmed ? 'opacity-30 hover:opacity-75' : 'opacity-100'
-                        }`}
-                        title={`${g.french} (${g.uiaa}): ${g.total} ${
-                          isGr ? 'διαδρομές' : 'routes'
-                        }`}
-                      >
-                        <span
-                          className={`text-[10px] sm:text-[11px] font-bold mb-0.5 ${
-                            isSelected ? 'text-[#1e3a8a] scale-110' : 'text-gray-700'
-                          }`}
-                        >
-                          {isMemberOrAdmin && g.completed > 0
-                            ? `${g.completed}/${g.total}`
-                            : g.total}
-                        </span>
-
-                        <div
-                          className={`w-full max-w-[28px] rounded-t-md relative overflow-hidden transition-all duration-200 ${
-                            isSelected ? colors.active : colors.base
-                          }`}
-                          style={{ height: `${heightPct}%` }}
-                        >
-                          {sentPct > 0 && (
-                            <div
-                              className={`absolute bottom-0 inset-x-0 ${colors.sent} transition-all`}
-                              style={{ height: `${sentPct}%` }}
-                            />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* X-axis Labels (French + UIAA) */}
-                <div className="grid grid-cols-10 gap-1 sm:gap-2 pt-1.5 text-center">
-                  {gradeStats.map((g) => {
-                    const isSelected = selectedGrades.includes(g.french);
-                    return (
-                      <button
-                        key={g.french}
-                        type="button"
-                        onClick={() => onToggleGrade(g.french)}
-                        className={`flex flex-col items-center rounded py-0.5 transition-colors ${
-                          isSelected
-                            ? 'bg-[#1e3a8a]/10 text-[#1e3a8a]'
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-[11px] font-bold text-gray-900 leading-tight">
-                          {gradeSystem === 'uiaa' ? g.uiaa.split(' ')[0] : g.french}
-                        </span>
-                        <span className="text-[9px] text-gray-500 leading-tight">
-                          {gradeSystem === 'uiaa' ? g.french : g.uiaa.split(' ')[0]}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                {/* Connected Grade Columns: Bars + Labels together */}
+                {renderGradeColumns(false)}
               </CardContent>
             </Card>
 
@@ -676,13 +692,13 @@ export default function GradeChartAndStats({
                       </div>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">
-                      <div className="text-xs font-bold text-gray-900">5m – 15m</div>
+                      <div className="text-xs font-bold text-gray-900">{derivedLengths}</div>
                       <div className="text-[9px] text-gray-500">
                         {isGr ? 'Ανάπτυγμα' : 'Height'}
                       </div>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">
-                      <div className="text-xs font-bold text-gray-900">≤ 9+2</div>
+                      <div className="text-xs font-bold text-gray-900">{derivedQuickdraws}</div>
                       <div className="text-[9px] text-gray-500">
                         {isGr ? 'Σετάκια' : 'Quickdraws'}
                       </div>
@@ -696,8 +712,12 @@ export default function GradeChartAndStats({
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <span>
                       {isGr
-                        ? 'Κράνος απαραίτητο! Οι 7 κίτρινες γραμμές (Top Rope*) δεν έχουν μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).'
-                        : 'Helmet mandatory! The 7 yellow lines (Top Rope*) have no permanent lower-off (rig on trees or nuts/friends).'}
+                        ? cragInfo?.key === 'kokkini' || cragInfo?.id === 'kokkini'
+                          ? 'Κράνος απαραίτητο! Οι 7 κίτρινες γραμμές (Top Rope*) δεν έχουν μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).'
+                          : 'Χρήση κράνους απαραίτητη πάντα και παντού για αναρριχητές και ασφαλιστές!'
+                        : cragInfo?.key === 'kokkini' || cragInfo?.id === 'kokkini'
+                        ? 'Helmet mandatory! The 7 yellow lines (Top Rope*) have no permanent lower-off (rig on trees or nuts/friends).'
+                        : 'Wearing a helmet is mandatory at all times for both climbers and belayers!'}
                     </span>
                   </div>
                   <button

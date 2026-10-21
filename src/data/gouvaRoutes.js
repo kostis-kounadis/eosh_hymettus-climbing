@@ -66,9 +66,9 @@ export const CRAG_INFO_GOUVA = {
   approachEn:
     'From the top of Sofokli Venizelou Ave (fire lookout barrier and parking), follow the dirt road and footpath northwards for approximately 10 minutes.',
   rockAndSafetyGr:
-    'Λαξευμένος συμπαγής βράχος με χαρακτηριστικές μαρμάρινες φλέβες. ΠΡΟΣΟΧΗ (ΕΟΣΗ 2018): Στις διαδρομές 1, 2, 9, 9Α, 11, 12 έχουν αλλάξει οι πορείες και οι βαθμολογίες. Στη διαδρομή 1 λείπουν τα πρώτα 2 βύσματα (theCrag info). Η διαδρομή 9Α μοιράζεται τα 2 τελευταία βύσματα και το ρελέ με την 9. Οι διαδρομές 5 & 14 είναι Top Rope χωρίς μόνιμα ρελέ. Κράνος απαραίτητο πάντα.',
+    'Λαξευμένος συμπαγής βράχος με χαρακτηριστικές μαρμάρινες φλέβες. ΠΡΟΣΟΧΗ (ΕΟΣΗ 2018): Στις διαδρομές 1, 2, 9, 9Α, 11, 12 έχουν αλλάξει οι πορείες και οι βαθμολογίες. Στη διαδρομή 1 λείπουν τα πρώτα 2 βύσματα. Η διαδρομή 9Α μοιράζεται τα 2 τελευταία βύσματα και το ρελέ με την 9. Οι διαδρομές 5 & 14 είναι Top Rope χωρίς μόνιμα ρελέ. Κράνος απαραίτητο πάντα.',
   rockAndSafetyEn:
-    'Quarried compact limestone and marble. CAUTION: Routes 1, 2, 9, 9A, 11, 12 had realignments and grade updates. On Route 1, the first two bolts are reported missing. Route 9A shares the last 2 bolts and anchor with #9. Routes 5 & 14 are Top Rope without permanent lower-off anchors. Helmets mandatory at all times.',
+    'Quarried compact limestone and marble. CAUTION: Routes 1, 2, 9, 9A, 11, 12 had realignments and grade updates. On Route 1, the first two bolts are missing. Route 9A shares the last 2 bolts and anchor with #9. Routes 5 & 14 are Top Rope without permanent lower-off anchors. Helmets mandatory at all times.',
   reboltingGr:
     'Συντήρηση 2017 από τον Δ. Τιτόπουλο με υλικά Inox 316L UIAA. Η διαδρομή «Έξοδος Κινδύνου» ανοίχτηκε τον Δεκ 2010 από τον Νίκο Αλεξίου και συντηρήθηκε πλήρως στις 14 Φεβρουαρίου 2026.',
   reboltingEn:
@@ -100,8 +100,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Σύντομη εισαγωγική γραμμή 5μ. Σημείωση theCrag: λείπουν τα πρώτα 2 βύσματα.',
-    noteEn: 'Short introductory 5m climb. Note from theCrag: the first 2 bolts are missing.',
+    noteGr: 'Σύντομη εισαγωγική γραμμή 5μ.',
+    noteEn: 'Short introductory 5m climb.',
     svgPath: null,
   },
   {
@@ -220,8 +220,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Εκπαιδευτική γραμμή IV 8 μέτρων με 4 ασφάλειες (★★ στο theCrag).',
-    noteEn: 'Educational IV climb over 8m with 4 bolts (★★ on theCrag).',
+    noteGr: 'Εκπαιδευτική γραμμή IV 8 μέτρων με 4 ασφάλειες.',
+    noteEn: 'Educational IV climb over 8m with 4 bolts.',
     svgPath: null,
   },
   {
@@ -268,8 +268,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Ευχάριστη εκπαιδευτική γραμμή IV στα 9 μέτρα (★★ στο theCrag).',
-    noteEn: 'Pleasant training line IV over 9m (★★ on theCrag).',
+    noteGr: 'Ευχάριστη εκπαιδευτική γραμμή IV στα 9 μέτρα.',
+    noteEn: 'Pleasant training line IV over 9m.',
     svgPath: null,
   },
   {
@@ -292,8 +292,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Σταθερό σκαρφάλωμα 5a 10μ σε λευκό συμπαγή ασβεστόλιθο (★★ στο theCrag).',
-    noteEn: 'Steady 5a climb over 10m on white compact rock (★★ on theCrag).',
+    noteGr: 'Σταθερό σκαρφάλωμα 5a 10μ σε λευκό συμπαγή ασβεστόλιθο.',
+    noteEn: 'Steady 5a climb over 10m on white compact rock.',
     svgPath: null,
   },
   {
@@ -316,8 +316,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Κλασική γραμμή 5b με 5 ασφάλειες στα 10μ (★★ στο theCrag).',
-    noteEn: 'Classic 5b line with 5 bolts over 10m (★★ on theCrag).',
+    noteGr: 'Κλασική γραμμή 5b με 5 ασφάλειες στα 10μ.',
+    noteEn: 'Classic 5b line with 5 bolts over 10m.',
     svgPath: null,
   },
   {
@@ -364,7 +364,7 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Κάθετη γραμμή 6a στα 11μ. ΠΡΟΣΟΧΗ (theCrag info): μοιράζεται τα 2 τελευταία βύσματα και το ρελέ με την 9.',
+    noteGr: 'Κάθετη γραμμή 6a στα 11μ. Μοιράζεται τα 2 τελευταία βύσματα και το ρελέ με την 9.',
     noteEn: 'Vertical 6a line over 11m. CAUTION: shares the last 2 bolts and lower-off anchor with #9.',
     svgPath: null,
   },
@@ -388,8 +388,8 @@ export const GOUVA_ROUTES = [
     setters: ['Δ. Καραγιάννης', 'Z. Florian', 'Δ. Σωτηράκης'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Αξιόπιστη γραμμή 5a στα 11μ με 5 ασφάλειες (επιβεβαιωμένη καταγραφή theCrag ανάμεσα στις 9A και 11).',
-    noteEn: 'Solid 5a climb over 11m with 5 bolts (confirmed on theCrag between 9A and 11).',
+    noteGr: 'Γραμμή 5a στα 11μ με 5 ασφάλειες ανάμεσα στις 9A και 11.',
+    noteEn: 'Solid 5a climb over 11m with 5 bolts located between 9A and 11.',
     svgPath: null,
   },
   {
@@ -461,8 +461,8 @@ export const GOUVA_ROUTES = [
     year: 2010,
     defaultStars: 3,
     isClassic: true,
-    noteGr: 'Η πιο δύσκολη διαδρομή της Γούβας (7b / VIII+, ★★★ στο theCrag). Ανοίχτηκε τον Δεκ 2010 από τον Νίκο Αλεξίου και συντηρήθηκε πλήρως στις 14 Φεβρουαρίου 2026.',
-    noteEn: 'The benchmark hard testpiece of Gouva (7b / VIII+, ★★★ on theCrag). Established in Dec 2010 by Nikos Alexiou and fully rebolted on 14 Feb 2026.',
+    noteGr: 'Η πιο δύσκολη διαδρομή της Γούβας (7b / VIII+). Ανοίχτηκε τον Δεκ 2010 από τον Νίκο Αλεξίου και συντηρήθηκε πλήρως στις 14 Φεβρουαρίου 2026.',
+    noteEn: 'The benchmark hard testpiece of Gouva (7b / VIII+). Established in Dec 2010 by Nikos Alexiou and fully rebolted on 14 Feb 2026.',
     svgPath: null,
   },
   {

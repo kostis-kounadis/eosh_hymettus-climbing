@@ -222,8 +222,8 @@ export const TOICHOS_MAKI_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'P. Bailey'],
     year: 1990,
     defaultStars: 3,
-    noteGr: 'Συνεχές τεχνικό σκαρφάλωμα 6b σε θετικά νυχάκια. Top rope.',
-    noteEn: 'Sustained technical 6b face climbing on micro edges. Top rope.',
+    noteGr: 'Συνεχής τεχνική αναρρίχηση 6b σε θετικά πιασίματα. Top rope.',
+    noteEn: 'Continuous technical 6b climbing on positive holds. Top rope.',
     svgPath: null, // ARGON TASK: Calibrate SVG coordinates
   },
   {

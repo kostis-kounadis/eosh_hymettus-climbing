@@ -52,9 +52,9 @@ export const CRAG_INFO_PRASINI = {
   cragMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.9340,23.7745',
   wikilocUrl: 'https://loc.wiki/t/166954682?wa=sc',
   introGr:
-    'Συνεχής κάθετος συμπαγής τοίχος με τεχνικό σκαρφάλωμα όψεως σε σταγόνες και λεπτά νυχάκια. Ανοίχτηκε και εξοπλίστηκε κυρίως τα έτη 1990–1992 από τους Χρ. Κουνιάκη, P. Bailey και Δ. Τιτόπουλο.',
+    'Συνεχής κάθετος συμπαγής τοίχος με τεχνική αναρρίχηση πλάκας σε μικρά πατήματα και πιασίματα. Οι διαδρομές ανοίχτηκαν και εξοπλίστηκαν κυρίως τα έτη 1990–1992 από τους Χρ. Κουνιάκη, P. Bailey και Δ. Τιτόπουλο.',
   introEn:
-    'Sustained vertical limestone wall with technical face climbing on crimps and water-carved pockets. Opened and bolted primarily between 1990–1992 by Chr. Kouniakis, P. Bailey, and D. Titopoulos.',
+    'Sustained vertical compact limestone wall with technical slab climbing on small edges and crimps. Opened and bolted primarily between 1990–1992 by Chr. Kouniakis, P. Bailey, and D. Titopoulos.',
   shadeGr:
     'Το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 12:00 το μεσημέρι. Το χειμώνα τη βλέπει ο ήλιος τις μεσημεριανές ώρες, καθιστώντας την ιδανική για χειμερινές αναρριχήσεις.',
   shadeEn:
@@ -219,8 +219,8 @@ export const PRASINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 3,
     isClassic: true,
-    noteGr: 'Η πιο δύσκολη και χαρακτηριστική γραμμή της Πράσινης Πίστας (6c+). Τεχνικό crux σε μικρά νυχάκια.',
-    noteEn: 'The benchmark testpiece of Prasini Pista (6c+). Technical crux on micro edges.',
+    noteGr: 'Η πιο απαιτητική και χαρακτηριστική γραμμή της Πράσινης Πίστας (6c+). Τεχνικό πέρασμα (crux) σε μικρά πατήματα και λεπτά πιασίματα.',
+    noteEn: 'The benchmark line of Prasini Pista (6c+). Technical crux on small edges and micro-crimps.',
     svgPath: null,
   },
   {
@@ -267,8 +267,8 @@ export const PRASINI_PISTA_ROUTES = [
     setters: ['Χρ. Κουνιάκης', 'P. Bailey'],
     year: 1991,
     defaultStars: 3,
-    noteGr: 'Απαιτητική κάθετη γραμμή 6b+ με δυναμικό πέρασμα (★★ στο theCrag).',
-    noteEn: 'Demanding vertical 6b+ climb with a dynamic crux sequence (★★ on theCrag).',
+    noteGr: 'Απαιτητική κάθετη γραμμή 6b+ με δυναμικό πέρασμα.',
+    noteEn: 'Demanding vertical 6b+ climb with a dynamic crux sequence.',
     svgPath: null,
   },
   {

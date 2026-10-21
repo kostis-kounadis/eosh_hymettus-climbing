@@ -97,6 +97,9 @@ export const GRADE_BANDS = [
 export const getGradeTier = (french) => {
   if (!french) return 'easy';
   const clean = String(french).toLowerCase().trim();
+  if (clean.startsWith('a') || clean.startsWith('c') || clean.includes('aid')) {
+    return 'aid';
+  }
   if (clean.startsWith('3') || clean.startsWith('4') || clean.startsWith('5')) {
     return 'easy';
   }
@@ -106,7 +109,10 @@ export const getGradeTier = (french) => {
   if (clean.startsWith('7')) {
     return 'hard';
   }
-  return 'extreme';
+  if (clean.startsWith('8') || clean.startsWith('9')) {
+    return 'extreme';
+  }
+  return 'easy';
 };
 
 export const getGradeHex = (french) => {
@@ -114,7 +120,8 @@ export const getGradeHex = (french) => {
   if (tier === 'easy') return '#16a34a';
   if (tier === 'medium') return '#f59e0b';
   if (tier === 'hard') return '#dc2626';
-  return '#18181b';
+  if (tier === 'extreme') return '#18181b';
+  return '#64748b';
 };
 
 export const getGradeBadgeClass = (french) => {
@@ -122,7 +129,8 @@ export const getGradeBadgeClass = (french) => {
   if (tier === 'easy') return 'bg-green-100 text-green-800 border border-green-300';
   if (tier === 'medium') return 'bg-amber-100 text-amber-800 border border-amber-300';
   if (tier === 'hard') return 'bg-rose-100 text-rose-800 border border-rose-300';
-  return 'bg-zinc-200 text-zinc-900 border border-zinc-400';
+  if (tier === 'extreme') return 'bg-zinc-200 text-zinc-900 border border-zinc-400';
+  return 'bg-slate-100 text-slate-800 border border-slate-300';
 };
 
 export const getGradeSoftBadgeClass = (french) => {
@@ -130,7 +138,8 @@ export const getGradeSoftBadgeClass = (french) => {
   if (tier === 'easy') return 'bg-green-100 text-green-800 border-green-300';
   if (tier === 'medium') return 'bg-amber-100 text-amber-800 border-amber-300';
   if (tier === 'hard') return 'bg-rose-100 text-rose-800 border-rose-300';
-  return 'bg-zinc-200 text-zinc-900 border-zinc-400';
+  if (tier === 'extreme') return 'bg-zinc-200 text-zinc-900 border-zinc-400';
+  return 'bg-slate-100 text-slate-800 border-slate-300';
 };
 
 export const KOKKINI_WALLS = [
@@ -191,9 +200,9 @@ export const CRAG_INFO_2018 = {
   approachEn:
     'From the top end of Sofokli Venizelou Ave. (Ilioupoli), at the parking area and metal gate (fire lookout), walk 150m uphill along the dirt road, then head straight into the small gully following the marked trail (10 min to Kokkini Pista · another 10 min straight up via the rocky step with the fixed hand-rope leads to Trypios Vrachos).',
   rockAndSafetyGr:
-    'Συμπαγής ασβεστόλιθος με τοπικές φλέβες μαρμάρου. Λόγω των μεγάλων πυρκαγιών του 1999 & 2015 αποκολλήθηκαν φλοίδες βράχου — έγινε εκτεταμένος καθαρισμός σαθρών το 2017, αλλά η χρήση κράνους είναι απαραίτητη πάντα και παντού! Παρακαλούνται οι αναρριχητές να μην αφαιρούν τα παλιά καρφιά για ιστορικούς λόγους.',
+    'Συμπαγής ασβεστόλιθος με τοπικές φλέβες μαρμάρου. Η χρήση κράνους είναι απαραίτητη πάντα και παντού για αναρριχητές και ασφαλιστές! Παρακαλούνται οι αναρριχητές να μην αφαιρούν τα παλιά καρφιά για ιστορικούς λόγους.',
   rockAndSafetyEn:
-    'Solid limestone with occasional marble veins. The 1999 & 2015 wildfires caused rock flaking — loose rock was extensively cleaned during the 2017 restoration, but wearing a helmet is mandatory at all times! Please do not remove old pitons for historical reasons.',
+    'Solid limestone with occasional marble veins. Wearing a climbing helmet is mandatory at all times for both climbers and belayers! Please do not remove old pitons for historical reasons.',
   reboltingGr:
     'Συντήρηση & ανακατασκευή Οκτ–Δεκ 2017 από τον Δ. Τιτόπουλο (ΣΠΑΥ, Δήμος Ηλιούπολης & ΕΟΣ Ηλιούπολης υπό την αιγίδα της ΕΟΟΑ): 5 πεδία, 93 διαδρομές, 830 βύσματα διπλής εκτόνωσης & πλακέτες 316L Inox UIAA και 210 ρελέ κρίκου 316L UIAA.',
   reboltingEn:

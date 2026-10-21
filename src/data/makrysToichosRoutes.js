@@ -194,8 +194,8 @@ export const MAKRYS_TOICHOS_ROUTES = [
     year: 1955,
     defaultStars: 3,
     isClassic: true,
-    noteGr: 'Ιστορική γραμμή των πρωτοπόρων Μιχαηλίδη & Ιδοσίδη. Εξαιρετική ποιότητα βράχου (★★★ στο theCrag).',
-    noteEn: 'Historic line opened by pioneers Michailidis & Idosidis. Superb rock quality (★★★ on theCrag).',
+    noteGr: 'Ιστορική γραμμή των πρωτοπόρων Μιχαηλίδη & Ιδοσίδη. Εξαιρετική ποιότητα βράχου.',
+    noteEn: 'Historic line opened by pioneers Michailidis & Idosidis. Superb rock quality.',
     svgPath: null,
   },
   {
@@ -341,8 +341,8 @@ export const MAKRYS_TOICHOS_ROUTES = [
     year: 1976,
     defaultStars: 3,
     isClassic: true,
-    noteGr: 'Εξαιρετικά δημοφιλής γραμμή του 1976 (★★★ στο theCrag), συνεχές ευχάριστο σκαρφάλωμα.',
-    noteEn: 'Highly popular 1976 classic (★★★ on theCrag), continuously enjoyable face.',
+    noteGr: 'Εξαιρετικά δημοφιλής γραμμή του 1976, συνεχές ευχάριστο σκαρφάλωμα.',
+    noteEn: 'Highly popular 1976 classic, continuously enjoyable face.',
     svgPath: null,
   },
   {
@@ -414,8 +414,8 @@ export const MAKRYS_TOICHOS_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'P. Bailey'],
     year: 1990,
     defaultStars: 3,
-    noteGr: 'Όμορφη γραμμή 5c (★★ στο theCrag), συμπαγής τοίχος 10μ.',
-    noteEn: 'Solid 5c line (★★ on theCrag), clean 10m limestone face.',
+    noteGr: 'Όμορφη γραμμή 5c σε συμπαγή τοίχο 10μ.',
+    noteEn: 'Solid 5c line on a clean 10m limestone face.',
     svgPath: null,
   },
   {
@@ -438,8 +438,8 @@ export const MAKRYS_TOICHOS_ROUTES = [
     setters: ['Δ. Τιτόπουλος', 'P. Bailey'],
     year: 1990,
     defaultStars: 2,
-    noteGr: 'Σύντομη γραμμή 8μ. ΠΡΟΣΟΧΗ (theCrag info): παρατηρήθηκε φωλιά πουλιών, σεβαστείτε την πανίδα κατά την περίοδο φωλεοποίησης.',
-    noteEn: 'Short 8m line. CAUTION (theCrag info): bird nest reported, respect wildlife during nesting period.',
+    noteGr: 'Σύντομη γραμμή 8μ με 4 ασφάλειες.',
+    noteEn: 'Short 8m line with 4 bolts.',
     svgPath: null,
   },
   {

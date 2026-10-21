@@ -1023,6 +1023,7 @@ export default function KokkiniPistaPage({
                   }))
                 }
                 isDockedWithFilterBar={true}
+                cragInfo={cragInfo}
               />
             </div>
           </div>
@@ -1125,6 +1126,8 @@ export default function KokkiniPistaPage({
                         year: p.year === year ? 'all' : year,
                       }))
                     }
+                    cragInfo={cragInfo}
+                    routes={routes}
                   />
                 </div>
               </div>
@@ -1199,6 +1202,7 @@ export default function KokkiniPistaPage({
                   }
                   isDockedWithFilterBar={true}
                   disableRowAccordionOnDesktop={true}
+                  cragInfo={cragInfo}
                 />
               </div>
             </div>
