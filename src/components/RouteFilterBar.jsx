@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   SlidersHorizontal,
   Heart,
@@ -30,16 +30,9 @@ export default function RouteFilterBar({
   isDockedWithTable = false,
   setters = ALL_SETTERS,
   years = ALL_YEARS,
-  routes = [],
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
-
-  const visibleGrades = useMemo(() => {
-    if (!routes || routes.length === 0) return FRENCH_GRADE_ORDER;
-    const set = new Set(routes.map((r) => r.french).filter(Boolean));
-    return FRENCH_GRADE_ORDER.filter((g) => set.has(g));
-  }, [routes]);
 
   const update = (patch) => {
     onChangeFilters({ ...filters, ...patch });
@@ -171,7 +164,7 @@ export default function RouteFilterBar({
                 )}
               </div>
               <div className="flex flex-wrap gap-1">
-                {visibleGrades.map((g) => {
+                {FRENCH_GRADE_ORDER.map((g) => {
                   const active = filters.selectedGrades.includes(g);
                   return (
                     <button

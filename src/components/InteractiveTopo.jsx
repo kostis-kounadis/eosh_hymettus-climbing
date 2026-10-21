@@ -814,23 +814,17 @@ export default function InteractiveTopo({
                 ) : (
                   <div
                     style={{ width: `${W}px`, height: `${H}px` }}
-                    className="flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 border border-neutral-800/80 relative select-none"
+                    className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gray-50 border border-gray-200/80 select-none"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-400/25 flex items-center justify-center mb-3 shadow-inner">
-                      <Mountain className="w-7 h-7 text-blue-400" />
-                    </div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-2.5">
-                      <Wrench className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{isGr ? 'Αναμονή επεξεργασίας · Pending Argon' : 'Pending Topo Calibration · Argon'}</span>
-                    </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
+                    <Mountain className="w-8 h-8 text-gray-400 mb-2" />
+                    <span className="text-sm font-bold text-gray-800">
                       {isGr ? wallConfig.titleGr : wallConfig.titleEn}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-neutral-300 max-w-lg leading-relaxed">
+                    </span>
+                    <span className="text-xs text-gray-500 mt-1 max-w-md">
                       {isGr
-                        ? 'Το διανυσματικό topo και η χάραξη γραμμών (SVG) θα προστεθούν από τον Argon μόλις ολοκληρωθεί η επεξεργασία της φωτογραφίας του βράχου. Όλα τα τεχνικά δεδομένα και ο αναλυτικός πίνακας διαδρομών είναι πλήρως διαθέσιμα παρακάτω.'
-                        : 'Vector topo drawing (SVG lines) and high-res wall photography will be provided by Argon once image processing is complete. All route beta and interactive table features are fully active below.'}
-                    </p>
+                        ? 'Αναμονή σχεδίασης διανυσματικού topo (Argon). Όλες οι διαδρομές και τα αναλυτικά στοιχεία είναι διαθέσιμα στον πίνακα παρακάτω.'
+                        : 'Vector topo calibration pending (Argon). Full route beta and table available below.'}
+                    </span>
                   </div>
                 )}
 
@@ -1060,9 +1054,9 @@ export default function InteractiveTopo({
                             : 'text-white/90 hover:text-white font-medium'
                         }`}
                       >
-                        <span className="sm:hidden">{isGr ? `Τμήμα ${w.id}` : `Wall ${w.id}`}</span>
+                        <span className="sm:hidden">{isGr ? `Τοίχος ${w.id}` : `Wall ${w.id}`}</span>
                         <span className="hidden sm:inline">
-                          {isGr ? (w.titleGr.includes('(') ? w.titleGr.split('(')[1].replace(')', '') : w.titleGr) : (w.titleEn.includes('(') ? w.titleEn.split('(')[1].replace(')', '') : w.titleEn)}
+                          {isGr ? (w.titleGr || `Τοίχος ${w.id}`) : (w.titleEn || `Wall ${w.id}`)}
                         </span>
                       </button>
                     ))}

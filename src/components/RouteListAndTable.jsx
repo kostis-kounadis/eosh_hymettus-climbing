@@ -52,10 +52,6 @@ export default function RouteListAndTable({
   const [copiedId, setCopiedId] = useState(null);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
-  const hasMultipleWalls = useMemo(
-    () => routes.some((r) => r.wall && r.wall > 1),
-    [routes]
-  );
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -312,11 +308,11 @@ export default function RouteListAndTable({
                       </span>
                     </td>
 
-                    {/* Route Name + Wall + Pitch + ♫ / ★ */}
+                    {/* Route Name + Wall + ♫ / ★ */}
                     <td className="py-2 px-3 font-semibold text-gray-900">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span>{isGr ? route.nameGr : route.nameEn}</span>
-                        {hasMultipleWalls && route.wall && (
+                        {route.wall && (
                           <span className="text-[10px] text-gray-400 font-normal">
                             (T{route.wall})
                           </span>

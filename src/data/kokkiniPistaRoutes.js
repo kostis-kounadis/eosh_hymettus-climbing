@@ -3,9 +3,6 @@
 // calibrated against the extracted 1470x893 (Wall 1) and 1470x719 (Wall 2) topo photos.
 
 export const FRENCH_GRADE_ORDER = [
-  '4a',
-  '4b',
-  '4c',
   '5a',
   '5b',
   '5c',
@@ -16,18 +13,9 @@ export const FRENCH_GRADE_ORDER = [
   '6c',
   '6c+',
   '7a',
-  '7a+',
-  '7b',
-  '7b+',
-  '7c',
-  '8a',
-  'A1',
 ];
 
 export const UIAA_BY_FRENCH = {
-  '4a': 'IV',
-  '4b': 'IV+',
-  '4c': 'IV+ / V-',
   '5a': 'V-',
   '5b': 'V',
   '5c': 'V+ / VI-',
@@ -38,17 +26,9 @@ export const UIAA_BY_FRENCH = {
   '6c': 'VII+',
   '6c+': 'VIII-',
   '7a': 'VIII',
-  '7a+': 'VIII+',
-  '7b': 'VIII+ / IX-',
-  '7b+': 'IX-',
-  '7c': 'IX',
-  '8a': 'IX+',
-  'A1': 'A1',
 };
 
 export const UIAA_GRADE_ORDER = [
-  'IV',
-  'IV+',
   'V-',
   'V',
   'V+',
@@ -60,11 +40,6 @@ export const UIAA_GRADE_ORDER = [
   'VII+',
   'VIII-',
   'VIII',
-  'VIII+',
-  'IX-',
-  'IX',
-  'IX+',
-  'A1',
 ];
 
 // Grade color bands & hex codes:
@@ -185,6 +160,16 @@ export const KOKKINI_WALLS = [
 
 // Authentic crag documentation extracted from cms_b4e1305033.pdf (ΕΟΣ Ηλιούπολης 2018)
 export const CRAG_INFO_2018 = {
+  key: 'kokkini',
+  nameGr: 'Κόκκινη Πίστα',
+  nameEn: 'Red Crag (Kokkini Pista)',
+  areaGr: 'Ηλιούπολη',
+  areaEn: 'Ilioupoli',
+  gradeSpan: '5a–7a',
+  height: '5–15m',
+  quickdraws: '≤ 9+2',
+  ropeGr: '(σχοινί 40m)',
+  ropeEn: '(40m rope)',
   introGr:
     'Ο μεγαλύτερος αναρριχητικός τομέας της Ηλιούπολης στον Υμηττό, με κάθετο συμπαγή ασβεστόλιθο και διαδρομές από εκπαιδευτικές πλάκες έως την ιστορική στέγη που πρωτοσκαρφαλώθηκε από τον Ιδοσίδη το 1960.',
   introEn:

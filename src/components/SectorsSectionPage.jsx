@@ -40,7 +40,7 @@ export default function SectorsSectionPage({ isGr, onToggleLang }) {
                   onClick={() => {
                     navigate(s.path || `/sector/${s.key}`);
                   }}
-                  className="border border-[#1e3a8a]/30 hover:border-[#1e3a8a] bg-white transition-all hover:shadow-lg cursor-pointer ring-1 ring-[#1e3a8a]/10 hover:ring-[#1e3a8a]/30 group"
+                  className="border bg-white transition-all border-[#1e3a8a]/40 hover:border-[#1e3a8a] hover:shadow-lg cursor-pointer ring-1 ring-[#1e3a8a]/15 group"
                   data-testid={`sector-card-${s.key}`}
                 >
                   <CardContent className="p-6">
@@ -49,7 +49,7 @@ export default function SectorsSectionPage({ isGr, onToggleLang }) {
                         <Badge variant="outline" className="text-xs">
                           <MapPin className="w-3 h-3 mr-1" /> {isGr ? (s.areaGr || s.area) : s.area}
                         </Badge>
-                        <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] text-xs border-transparent font-semibold">
+                        <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] text-xs border-transparent">
                           {s.routes} {isGr ? 'διαδρομές' : 'routes'}
                         </Badge>
                       </div>
@@ -58,7 +58,7 @@ export default function SectorsSectionPage({ isGr, onToggleLang }) {
                         <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-[#1e3a8a] transition-colors">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">
                       {isGr ? s.nameGr : s.nameEn}
                     </h3>
                     <div className="text-sm text-gray-500 mb-3 flex items-center gap-3">

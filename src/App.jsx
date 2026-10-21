@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import SectorsSectionPage from './components/SectorsSectionPage';
-import SectorDetailPage from './components/SectorDetailPage';
+import KokkiniPistaPage from './components/KokkiniPistaPage';
 
 export default function App() {
   const [lang, setLang] = useState('gr');
@@ -24,73 +24,31 @@ export default function App() {
         />
         <Route
           path="/kokkini-pista"
-          element={
-            <SectorDetailPage
-              sectorKey="kokkini"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="kokkini" />}
         />
         <Route
           path="/toichos-maki"
-          element={
-            <SectorDetailPage
-              sectorKey="makis"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="makis" />}
         />
         <Route
           path="/makrys-toichos"
-          element={
-            <SectorDetailPage
-              sectorKey="makrys"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="makrys" />}
         />
         <Route
           path="/prasini-pista"
-          element={
-            <SectorDetailPage
-              sectorKey="prasini"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="prasini" />}
         />
         <Route
           path="/trypios-vrachos"
-          element={
-            <SectorDetailPage
-              sectorKey="trypios"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="trypios" />}
         />
         <Route
           path="/gouva"
-          element={
-            <SectorDetailPage
-              sectorKey="gouva"
-              isGr={isGr}
-              onToggleLang={toggleLang}
-            />
-          }
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} sectorKey="gouva" />}
         />
         <Route
           path="/sector/:sectorKey"
-          element={
-            <SectorDetailPage isGr={isGr} onToggleLang={toggleLang} />
-          }
-        />
-        <Route
-          path="*"
-          element={<Navigate to="/sectors" replace />}
+          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} />}
         />
       </Routes>
     </HashRouter>

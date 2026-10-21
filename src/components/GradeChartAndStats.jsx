@@ -25,8 +25,9 @@ import {
 import { isCompletedTick } from '../hooks/useClimberLogbook';
 
 // Exact seasonal & hourly sun/shade schedule from cms_b4e1305033.pdf (Page 4):
-// Tailored for each sector of Hymettus
-export function getHymettusSunStatus(isGr, sectorKey = 'kokkini') {
+// "Στην «ΚΟΚΚΙΝΗ ΠΙΣΤΑ» το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 10.00 και από τις 11.00 και μετά μέχρι το βράδυ.
+//  Το χειμώνα και οι δυο πίστες είναι στην σκιά όλη την ημέρα..."
+export function getHymettusSunStatus(isGr) {
   let athensHour = 12;
   let athensMonth = 6; // 1..12
   try {
@@ -55,92 +56,11 @@ export function getHymettusSunStatus(isGr, sectorKey = 'kokkini') {
       badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
       label: isGr ? 'Νύχτα στον Υμηττό' : 'Night hours',
       detail: isGr
-        ? 'Ελέγξτε τις ώρες σκιάς για την επόμενη επίσκεψή σας'
-        : 'Check crag shade timetable for your next climb',
+        ? 'Καλοκαίρι: Σκιά έως 10:00 & 11:00–βράδυ · Χειμώνας: Σκιά όλη μέρα'
+        : 'Summer: Shade until 10:00 & 11:00–dusk · Winter: Shade all day',
     };
   }
 
-  // Makis' Wall (Καρέας): summer shaded until 14:00
-  if (sectorKey === 'makis') {
-    const inShade = athensHour < 14;
-    return {
-      state: inShade ? 'shade' : 'sun',
-      badgeClass: inShade
-        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-        : 'bg-amber-100 text-amber-900 border-amber-300',
-      label: inShade
-        ? isGr ? 'Σε Σκιά τώρα (έως 14:00)' : 'In Shade now (until 14:00)'
-        : isGr ? 'Ήλιος τώρα (από 14:00)' : 'In Sun now (from 14:00)',
-      detail: isGr
-        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 14:00.`
-        : `Athens ~${athensHour}:00 · In summer shaded morning until 14:00.`,
-    };
-  }
-
-  // Long Wall / Makrys Toichos (Καρέας): summer shaded until 17:00
-  if (sectorKey === 'makrys') {
-    const inShade = athensHour < 17;
-    return {
-      state: inShade ? 'shade' : 'sun',
-      badgeClass: inShade
-        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-        : 'bg-amber-100 text-amber-900 border-amber-300',
-      label: inShade
-        ? isGr ? 'Σε Σκιά τώρα (έως 17:00)' : 'In Shade now (until 17:00)'
-        : isGr ? 'Ήλιος τώρα (από 17:00)' : 'In Sun now (from 17:00)',
-      detail: isGr
-        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 17:00.`
-        : `Athens ~${athensHour}:00 · In summer shaded morning until 17:00.`,
-    };
-  }
-
-  // Prasini Pista (Ηλιούπολη): summer shaded until 12:00
-  if (sectorKey === 'prasini') {
-    const inShade = athensHour < 12;
-    return {
-      state: inShade ? 'shade' : 'sun',
-      badgeClass: inShade
-        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-        : 'bg-amber-100 text-amber-900 border-amber-300',
-      label: inShade
-        ? isGr ? 'Σε Σκιά τώρα (έως 12:00)' : 'In Shade now (until 12:00)'
-        : isGr ? 'Ήλιος τώρα (από 12:00)' : 'In Sun now (from 12:00)',
-      detail: isGr
-        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά έως τις 12:00 (το χειμώνα έχει ήλιο τις μεσημεριανές ώρες).`
-        : `Athens ~${athensHour}:00 · In summer shaded until 12:00 (winter catches midday sun).`,
-    };
-  }
-
-  // Trypios Vrachos (Ηλιούπολη): main mass summer shaded until 16:00
-  if (sectorKey === 'trypios') {
-    const inShade = athensHour < 16;
-    return {
-      state: inShade ? 'shade' : 'sun',
-      badgeClass: inShade
-        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-        : 'bg-amber-100 text-amber-900 border-amber-300',
-      label: inShade
-        ? isGr ? 'Σε Σκιά τώρα (κύριος όγκος έως 16:00)' : 'In Shade now (main wall until 16:00)'
-        : isGr ? 'Ήλιος τώρα στον κυρίως όγκο' : 'In Sun now on main wall',
-      detail: isGr
-        ? `Ώρα Αθήνας ~${athensHour}:00 · Κύριος όγκος σε σκιά έως 16:00 (αριστερά ΑΣΕ έως 13:00, δεξιά Καμήλα έως το βράδυ).`
-        : `Athens ~${athensHour}:00 · Main mass in shade until 16:00 (left flank until 13:00, right flank until dusk).`,
-    };
-  }
-
-  // Gouva (Ηλιούπολη): variable shade in quarry
-  if (sectorKey === 'gouva') {
-    return {
-      state: 'shade',
-      badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-      label: isGr ? 'Μεταβλητή Σκιά' : 'Variable Shade',
-      detail: isGr
-        ? `Ώρα Αθήνας ~${athensHour}:00 · Το ανάγλυφο της Γούβας προσφέρει προστατευμένη σκιά σε διάφορες γωνίες.`
-        : `Athens ~${athensHour}:00 · Quarry contour provides protected shade across various aspects.`,
-    };
-  }
-
-  // Kokkini Pista (Default)
   if (isWinter) {
     return {
       state: 'shade',
@@ -173,6 +93,39 @@ export function getHymettusSunStatus(isGr, sectorKey = 'kokkini') {
   };
 }
 
+const HYMETTUS_ALL_GRADES = [
+  '4a',
+  '4b',
+  '4c',
+  '5a',
+  '5b',
+  '5c',
+  '6a',
+  '6a+',
+  '6b',
+  '6b+',
+  '6c',
+  '6c+',
+  '7a',
+  '7a+',
+  '7b',
+  '7b+',
+  '7c',
+  '8a',
+];
+
+const HYMETTUS_UIAA_MAP = {
+  ...UIAA_BY_FRENCH,
+  '4a': 'IV',
+  '4b': 'IV+',
+  '4c': 'IV+',
+  '7a+': 'VIII+',
+  '7b': 'VIII+',
+  '7b+': 'IX-',
+  '7c': 'IX',
+  '8a': 'IX+',
+};
+
 export default function GradeChartAndStats({
   isGr,
   userMode, // 'guest' | 'member' | 'admin'
@@ -186,7 +139,6 @@ export default function GradeChartAndStats({
   onOpenLogbookModal,
   histogramOnly = false,
   cragInfo = CRAG_INFO_2018,
-  sectorKey = 'kokkini',
 }) {
   // Compact on mobile: collapsed by default on small viewports (<768px), open on desktop
   const [mobileExpanded, setMobileExpanded] = useState(() =>
@@ -198,14 +150,30 @@ export default function GradeChartAndStats({
   const [showCragGuideNotes, setShowCragGuideNotes] = useState(false);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
-  const sunStatus = useMemo(() => getHymettusSunStatus(isGr, sectorKey), [isGr, sectorKey]);
+  const sunStatus = useMemo(() => getHymettusSunStatus(isGr), [isGr]);
+
+  const activeGradeOrder = useMemo(() => {
+    const present = new Set(routes.map((r) => r.french).filter(Boolean));
+    const hasExternal = Array.from(present).some(
+      (g) => !FRENCH_GRADE_ORDER.includes(g)
+    );
+    if (!hasExternal) return FRENCH_GRADE_ORDER;
+
+    const indices = Array.from(present)
+      .map((g) => HYMETTUS_ALL_GRADES.indexOf(g))
+      .filter((i) => i >= 0);
+    if (indices.length === 0) return FRENCH_GRADE_ORDER;
+    const minIdx = Math.min(...indices);
+    const maxIdx = Math.max(...indices);
+    return HYMETTUS_ALL_GRADES.slice(minIdx, maxIdx + 1);
+  }, [routes]);
 
   const gradeStats = useMemo(() => {
     const map = {};
-    FRENCH_GRADE_ORDER.forEach((g) => {
+    activeGradeOrder.forEach((g) => {
       map[g] = {
         french: g,
-        uiaa: UIAA_BY_FRENCH[g],
+        uiaa: HYMETTUS_UIAA_MAP[g] || UIAA_BY_FRENCH[g] || '—',
         total: 0,
         completed: 0,
         tier: getGradeTier(g),
@@ -221,10 +189,8 @@ export default function GradeChartAndStats({
         }
       }
     });
-    return FRENCH_GRADE_ORDER.map((g) => map[g]).filter(
-      (g) => g.total > 0 || (selectedGrades || []).includes(g.french)
-    );
-  }, [routes, getEntry, isMemberOrAdmin]);
+    return activeGradeOrder.map((g) => map[g]);
+  }, [routes, activeGradeOrder, getEntry, isMemberOrAdmin]);
 
   const maxCount = useMemo(
     () => Math.max(1, ...gradeStats.map((s) => s.total)),

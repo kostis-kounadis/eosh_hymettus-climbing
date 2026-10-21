@@ -252,7 +252,7 @@ export default function SelectedRouteDetailPanel({
             </div>
           </div>
 
-          {/* Tile 3: Protection (Bolts / TR / Trad / Aid) */}
+          {/* Tile 3: Protection (Bolts / TR) */}
           <div className="p-2 rounded-lg bg-gray-50 border border-gray-200/80 flex flex-col justify-between">
             <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider flex items-center justify-between">
               <span>{isGr ? 'Ασφάλιση' : 'Protection'}</span>
