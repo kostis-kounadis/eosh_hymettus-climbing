@@ -1,6 +1,13 @@
-// Complete sectors database for Mt. Hymettus (EOSH 2018 + community updates)
-// Enriched with WGS84 GPS coordinates (provisional placeholders pending user's verified coordinates),
-// parking trailheads, approach paths, and area boundary polygons.
+// ============================================================================
+// MT. HYMETTUS CLIMBING SECTORS DATABASE (EOSH 2018 + community updates)
+// 
+// NOTE ON GPS COORDINATES:
+// The latitude/longitude values below are PROVISIONAL PLACEHOLDERS.
+// When verified GPS coordinates are provided, replace the `lat` and `lng`
+// values directly in `PARKING_TRAILHEADS`, `AREA_BOUNDARIES`, and `sectors`.
+// The interactive map, Google Maps directions, and markers will immediately
+// update without any component logic changes.
+// ============================================================================
 
 export const PARKING_TRAILHEADS = {
   ilioupoli: {

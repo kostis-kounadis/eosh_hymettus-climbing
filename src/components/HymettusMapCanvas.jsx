@@ -19,6 +19,7 @@ import {
   sectors,
   PARKING_TRAILHEADS,
   APPROACH_TRAILS,
+  AREA_BOUNDARIES,
   getGoogleMapsDirectionsUrl,
   getGoogleMapsPinUrl,
   getGoogleMapsEmbedUrl,
@@ -105,6 +106,32 @@ export default function HymettusMapCanvas({
       maxZoom: tileCfg.maxZoom,
     }).addTo(map);
 
+    // Draw Area Boundary Polygons (theCrag-style enclosing areas for Ilioupoli and Kareas)
+    AREA_BOUNDARIES.forEach((area) => {
+      const polygon = L.polygon(area.coords, {
+        color: area.color,
+        weight: 2.2,
+        dashArray: '6, 6',
+        fillColor: area.fillColor,
+        fillOpacity: 0.12,
+      }).addTo(map);
+
+      polygon.bindTooltip(
+        `<div style="font-family:system-ui,sans-serif;font-weight:700;font-size:11px;color:${area.color};">
+          ${isGr ? area.nameGr : area.nameEn}
+        </div>`,
+        {
+          sticky: true,
+          direction: 'center',
+          className: 'area-boundary-tooltip',
+        }
+      );
+
+      polygon.on('click', () => {
+        handleZoomArea(area.id === 'ilioupoli' ? 'Ilioupoli' : 'Karea');
+      });
+    });
+
     // Draw approach footpaths
     APPROACH_TRAILS.forEach((trail) => {
       const polyline = L.polyline(trail.coords, {
@@ -168,33 +195,46 @@ export default function HymettusMapCanvas({
       `);
     });
 
-    // Draw the 6 Crag Sector pins
+    // Draw the 6 Crag Sector pins (theCrag-inspired badge markers)
     sectors.forEach((s) => {
       const isKokkini = s.key === 'kokkini';
       const isSelected = s.key === activeSectorKey;
-      const pinBg = isKokkini
+      const badgeBg = isKokkini
         ? '#dc2626'
-        : isSelected
-          ? '#1e3a8a'
-          : '#0f172a';
+        : s.area === 'Karea'
+          ? '#059669'
+          : '#2563eb';
 
       const cragIcon = L.divIcon({
         className: `custom-crag-pin-${s.key}`,
         html: `
           <div style="
-            display:inline-flex;align-items:center;gap:5px;
-            background:${pinBg};color:#fff;
-            border:2px solid #fff;border-radius:9999px;
-            padding:4px 9px;font-size:11px;font-weight:800;
-            box-shadow:0 4px 14px rgba(0,0,0,0.42);
-            white-space:nowrap;transform:translate(-50%,-50%);
+            display:flex;flex-direction:column;align-items:center;
+            transform:translate(-50%,-100%);
             cursor:pointer;
           ">
-            <span style="width:7px;height:7px;border-radius:9999px;background:${
-              isKokkini ? '#fde047' : '#93c5fd'
-            };"></span>
-            <span>${isGr ? s.nameGr : s.nameGr}</span>
-            <span style="opacity:0.85;font-weight:600;font-size:10px;">(${s.routes})</span>
+            <div style="
+              width:28px;height:28px;border-radius:9999px;
+              background:${badgeBg};color:#ffffff;
+              display:flex;align-items:center;justify-content:center;
+              font-size:12px;font-weight:900;
+              box-shadow:0 3px 10px rgba(0,0,0,0.45);
+              border:2.5px solid ${isSelected ? '#fde047' : '#ffffff'};
+            ">
+              ${s.routes}
+            </div>
+            <div style="
+              margin-top:2px;
+              background:${isSelected ? '#1e3a8a' : 'rgba(15, 23, 42, 0.9)'};
+              color:#ffffff;
+              font-size:10px;font-weight:700;
+              padding:2px 7px;border-radius:9999px;
+              white-space:nowrap;
+              box-shadow:0 2px 6px rgba(0,0,0,0.35);
+              border:1px solid rgba(255,255,255,0.25);
+            ">
+              ${isGr ? s.nameGr : s.nameGr}
+            </div>
           </div>
         `,
         iconSize: [0, 0],
@@ -202,6 +242,43 @@ export default function HymettusMapCanvas({
       });
 
       const marker = L.marker([s.lat, s.lng], { icon: cragIcon }).addTo(map);
+
+      // Bind interactive Leaflet popup
+      marker.bindPopup(`
+        <div style="font-family:system-ui,-apple-system,sans-serif;min-width:210px;padding:2px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
+            <span style="font-size:10px;font-weight:700;color:#1e3a8a;text-transform:uppercase;background:#eff6ff;padding:2px 6px;border-radius:4px;">
+              ${isGr ? s.areaGr : s.area}
+            </span>
+            <span style="font-size:11px;font-weight:800;color:#059669;">
+              ${s.routes} ${isGr ? 'διαδρομές' : 'routes'}
+            </span>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;">
+            ${isGr ? s.nameGr : s.nameEn}
+          </div>
+          <div style="font-size:11px;color:#475569;margin-bottom:8px;line-height:1.4;">
+            🧗 ${s.grades}<br/>
+            ⏱️ ${s.approachMin}′ ${isGr ? 'πεζοπορία' : 'walk'}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <a href="#${s.path}" style="
+              flex:1;text-align:center;background:#1e3a8a;color:#ffffff;
+              padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;
+              text-decoration:none;display:inline-block;
+            ">
+              ${isGr ? 'Άνοιγμα Topo →' : 'Open Topo →'}
+            </a>
+            <a href="${getGoogleMapsDirectionsUrl(s.lat, s.lng, 'walking')}" target="_blank" rel="noopener noreferrer" title="${isGr ? 'Στίγμα στο Google Maps' : 'Crag Pin on Google Maps'}" style="
+              background:#f1f5f9;color:#0f172a;padding:6px 9px;border-radius:6px;
+              font-size:11px;font-weight:600;text-decoration:none;display:inline-block;border:1px solid #cbd5e1;
+            ">
+              🧭
+            </a>
+          </div>
+        </div>
+      `);
+
       marker.on('click', () => {
         handleSelectSector(s.key);
       });
@@ -250,34 +327,56 @@ export default function HymettusMapCanvas({
       if (!marker) return;
       const isKokkini = s.key === 'kokkini';
       const isSelected = s.key === activeSectorKey;
-      const pinBg = isSelected
+      const badgeBg = isSelected
         ? '#dc2626'
         : isKokkini
           ? '#b91c1c'
-          : '#0f172a';
-      const scale = isSelected ? 'scale(1.1)' : 'scale(1)';
+          : s.area === 'Karea'
+            ? '#059669'
+            : '#2563eb';
+      const scale = isSelected ? 'scale(1.15)' : 'scale(1)';
       const ring = isSelected
-        ? '0 0 0 4px rgba(220,38,38,0.35), 0 6px 16px rgba(0,0,0,0.45)'
-        : '0 4px 12px rgba(0,0,0,0.38)';
+        ? '0 0 0 4px rgba(220,38,38,0.38), 0 6px 16px rgba(0,0,0,0.5)'
+        : '0 3px 10px rgba(0,0,0,0.45)';
+
+      if (isSelected) {
+        marker.setZIndexOffset(1000);
+      } else {
+        marker.setZIndexOffset(0);
+      }
 
       marker.setIcon(
         L.divIcon({
           className: `custom-crag-pin-${s.key}`,
           html: `
             <div style="
-              display:inline-flex;align-items:center;gap:5px;
-              background:${pinBg};color:#fff;
-              border:2px solid ${isSelected ? '#fef08a' : '#fff'};border-radius:9999px;
-              padding:4px 9px;font-size:11px;font-weight:800;
-              box-shadow:${ring};
-              white-space:nowrap;transform:translate(-50%,-50%) ${scale};
-              transition:all 0.15s ease;cursor:pointer;
+              display:flex;flex-direction:column;align-items:center;
+              transform:translate(-50%,-100%) ${scale};
+              transition:all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+              cursor:pointer;
             ">
-              <span style="width:7px;height:7px;border-radius:9999px;background:${
-                isSelected ? '#fde047' : '#93c5fd'
-              };"></span>
-              <span>${isGr ? s.nameGr : s.nameEn.split(' (')[0]}</span>
-              <span style="opacity:0.85;font-weight:600;font-size:10px;">(${s.routes})</span>
+              <div style="
+                width:28px;height:28px;border-radius:9999px;
+                background:${badgeBg};color:#ffffff;
+                display:flex;align-items:center;justify-content:center;
+                font-size:12px;font-weight:900;
+                box-shadow:${ring};
+                border:2.5px solid ${isSelected ? '#fde047' : '#ffffff'};
+              ">
+                ${s.routes}
+              </div>
+              <div style="
+                margin-top:2px;
+                background:${isSelected ? '#1e3a8a' : 'rgba(15, 23, 42, 0.92)'};
+                color:#ffffff;
+                font-size:10px;font-weight:700;
+                padding:2px 7px;border-radius:9999px;
+                white-space:nowrap;
+                box-shadow:0 2px 6px rgba(0,0,0,0.35);
+                border:1px solid ${isSelected ? '#93c5fd' : 'rgba(255,255,255,0.25)'};
+              ">
+                ${isGr ? s.nameGr : s.nameEn.split(' (')[0]}
+              </div>
             </div>
           `,
           iconSize: [0, 0],
