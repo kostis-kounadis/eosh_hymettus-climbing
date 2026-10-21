@@ -106,25 +106,32 @@ export default function InteractiveTopo({
       setInternalExpanded(next);
     }
     if (next) {
-      // Zoomed in view when expanding: on mobile fill the ~48vh container (~1.65x), on desktop 1.45x/1.3x
+      // In expanded mobile mode (h-[60vh]), the photo expands naturally across width (~800px).
+      // At zoom 1x, the user can immediately drag left and right to see all routes.
+      // If a route is selected, zoom slightly (1.25x) and center on it.
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
       const targetZoom = isMobile
-        ? (selectedRoute ? 1.65 : 1.45)
+        ? (selectedRoute ? 1.25 : 1)
         : (selectedRoute ? 1.45 : 1.3);
       setZoomLevel(targetZoom);
       if (selectedRoute) {
-        setTimeout(() => centerOnRoute(selectedRoute, targetZoom), 40);
+        setTimeout(() => centerOnRoute(selectedRoute, targetZoom), 60);
       } else {
-        const vp = viewportRef.current;
-        if (vp) {
-          const vw = vp.clientWidth;
-          const vh = vp.clientHeight;
-          const midX = (vw - vw * targetZoom) / 2;
-          const midY = (vh - vh * targetZoom) / 2;
-          setPan(clampPan(midX, midY, targetZoom));
-        } else {
-          setPan({ x: 0, y: 0 });
-        }
+        setTimeout(() => {
+          const vp = viewportRef.current;
+          const layer = layerRef.current;
+          if (vp && layer) {
+            const vw = vp.clientWidth;
+            const vh = vp.clientHeight;
+            const layerW = layer.offsetWidth;
+            const layerH = layer.offsetHeight;
+            const midX = (vw - layerW * targetZoom) / 2;
+            const midY = (vh - layerH * targetZoom) / 2;
+            setPan(clampPan(midX, midY, targetZoom));
+          } else {
+            setPan({ x: 0, y: 0 });
+          }
+        }, 60);
       }
     } else {
       // Reset zoom back to 1
@@ -146,6 +153,7 @@ export default function InteractiveTopo({
 
   const stickyRef = useRef(null);
   const viewportRef = useRef(null);
+  const layerRef = useRef(null);
   const svgRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -193,31 +201,57 @@ export default function InteractiveTopo({
   // Clamp pan offset so the scaled image always covers the viewport box with zero black void
   const clampPan = useCallback((nextX, nextY, scale) => {
     const vp = viewportRef.current;
-    if (!vp || scale <= 1.001) return { x: 0, y: 0 };
+    const layer = layerRef.current;
+    if (!vp) return { x: 0, y: 0 };
     const vw = vp.clientWidth;
     const vh = vp.clientHeight;
-    const minX = vw * (1 - scale);
-    const minY = vh * (1 - scale);
+    const layerW = layer?.offsetWidth || vw;
+    const layerH = layer?.offsetHeight || vh;
+    const minX = Math.min(0, vw - layerW * scale);
+    const minY = Math.min(0, vh - layerH * scale);
     return {
       x: clamp(nextX, minX, 0),
       y: clamp(nextY, minY, 0),
     };
   }, []);
 
+  // Check if content is wider or taller than the viewport and can be panned
+  const canPanContent = useCallback(
+    (scale = zoomRef.current) => {
+      const vp = viewportRef.current;
+      const layer = layerRef.current;
+      if (!vp) return { x: false, y: false, any: false };
+      const vw = vp.clientWidth;
+      const vh = vp.clientHeight;
+      const layerW = layer?.offsetWidth || vw;
+      const layerH = layer?.offsetHeight || vh;
+      const x = layerW * scale > vw + 1;
+      const y = layerH * scale > vh + 1;
+      return { x, y, any: x || y };
+    },
+    []
+  );
+
   // Zoom around a specific focal point (fx, fy) in viewport coordinates
   const applyZoomAtPoint = useCallback(
     (targetScale, fx, fy) => {
       const vp = viewportRef.current;
+      const layer = layerRef.current;
       const nextScale = clamp(Number(targetScale.toFixed(3)), MIN_ZOOM, MAX_ZOOM);
-      if (!vp || nextScale <= 1.001) {
+      const layerW = layer?.offsetWidth || vp?.clientWidth || 0;
+      const layerH = layer?.offsetHeight || vp?.clientHeight || 0;
+      const vw = vp?.clientWidth || 0;
+      const vh = vp?.clientHeight || 0;
+
+      if (!vp || (nextScale <= 1.001 && layerW <= vw && layerH <= vh)) {
         setZoomLevel(1);
-        setPan({ x: 0, y: 0 });
+        setPan(clampPan(0, 0, 1));
         return;
       }
       const prevScale = zoomRef.current;
       const prevPan = panRef.current;
-      const focalX = fx !== undefined ? fx : vp.clientWidth / 2;
-      const focalY = fy !== undefined ? fy : vp.clientHeight / 2;
+      const focalX = fx !== undefined ? fx : vw / 2;
+      const focalY = fy !== undefined ? fy : vh / 2;
 
       // Unscaled coordinate under the focal point
       const contentX = (focalX - prevPan.x) / prevScale;
@@ -236,15 +270,18 @@ export default function InteractiveTopo({
   const centerOnRoute = useCallback(
     (route, targetScale = zoomRef.current) => {
       const vp = viewportRef.current;
-      if (!vp || !route || targetScale <= 1.001) return;
+      const layer = layerRef.current;
+      if (!vp || !route) return;
       const pts = getPointsForRoute(route);
       if (!pts || !pts.length) return;
       const avgXPct = pts.reduce((acc, p) => acc + p[0], 0) / pts.length;
       const avgYPct = pts.reduce((acc, p) => acc + p[1], 0) / pts.length;
       const vw = vp.clientWidth;
       const vh = vp.clientHeight;
-      const contentX = (avgXPct / 100) * vw;
-      const contentY = (avgYPct / 100) * vh;
+      const layerW = layer?.offsetWidth || vw;
+      const layerH = layer?.offsetHeight || vh;
+      const contentX = (avgXPct / 100) * layerW;
+      const contentY = (avgYPct / 100) * layerH;
       const desiredX = vw / 2 - contentX * targetScale;
       const desiredY = vh / 2 - contentY * targetScale;
       setPan(clampPan(desiredX, desiredY, targetScale));
@@ -402,13 +439,14 @@ export default function InteractiveTopo({
     }
   };
 
-  // Pointer Down/Move/Up for: (A) Admin Waypoint Dragging OR (B) 1-finger / Mouse Drag Panning when zoomed
+  // Pointer Down/Move/Up for: (A) Admin Waypoint Dragging OR (B) 1-finger / Mouse Drag Panning when content is pannable
   const handleViewportPointerDown = (e) => {
     pointerMovedDistRef.current = 0;
     if (editMode && isAdmin && draggingPointIdx !== null) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-    if (zoomRef.current > 1.01) {
+    const { any: canPan } = canPanContent();
+    if (canPan) {
       dragStartRef.current = {
         clientX: e.clientX,
         clientY: e.clientY,
@@ -470,10 +508,11 @@ export default function InteractiveTopo({
     const nextScale = cur < 1.3 ? 1.6 : cur < 2.0 ? 2.2 : 1;
     if (nextScale === 1) {
       setZoomLevel(1);
-      setPan({ x: 0, y: 0 });
+      setPan((prev) => clampPan(prev.x, prev.y, 1));
       return;
     }
     const vp = viewportRef.current;
+    const layer = layerRef.current;
     if (selectedRoute && selectedRoute.wall === activeWall && vp) {
       const pts = getPointsForRoute(selectedRoute);
       if (pts && pts.length) {
@@ -481,8 +520,10 @@ export default function InteractiveTopo({
         const avgYPct = pts.reduce((acc, p) => acc + p[1], 0) / pts.length;
         const vw = vp.clientWidth;
         const vh = vp.clientHeight;
-        const desiredX = vw / 2 - (avgXPct / 100) * vw * nextScale;
-        const desiredY = vh / 2 - (avgYPct / 100) * vh * nextScale;
+        const layerW = layer?.offsetWidth || vw;
+        const layerH = layer?.offsetHeight || vh;
+        const desiredX = vw / 2 - (avgXPct / 100) * layerW * nextScale;
+        const desiredY = vh / 2 - (avgYPct / 100) * layerH * nextScale;
         setZoomLevel(nextScale);
         setPan(clampPan(desiredX, desiredY, nextScale));
         return;
@@ -677,10 +718,10 @@ export default function InteractiveTopo({
               onDoubleClick={handleDoubleClick}
               className={`relative mx-auto overflow-hidden transition-[height] duration-300 ${
                 isExpandedSize
-                  ? 'w-full h-[48vh] sm:h-auto max-w-[1140px] sm:max-h-[calc(100vh-280px)]'
+                  ? 'w-full h-[60vh] sm:h-auto max-w-[1140px] sm:max-h-[calc(100vh-280px)]'
                   : 'w-full max-h-[35vh]'
               } ${
-                zoomLevel > 1.01
+                canPanContent().any
                   ? isPanning
                     ? 'cursor-grabbing'
                     : 'cursor-grab'
@@ -689,14 +730,26 @@ export default function InteractiveTopo({
               style={{
                 aspectRatio: isExpandedSize ? undefined : `${W} / ${H}`,
                 touchAction:
-                  zoomLevel > 1.01 || (editMode && isAdmin) ? 'none' : 'pan-y',
+                  canPanContent().x && canPanContent().y
+                    ? 'none'
+                    : canPanContent().x
+                    ? 'pan-y'
+                    : canPanContent().y
+                    ? 'pan-x'
+                    : editMode && isAdmin
+                    ? 'none'
+                    : 'auto',
               }}
             >
               {/* Inner Transformed Layer (Scales & Pans strictly inside the fixed box) */}
               <div
+                ref={layerRef}
                 data-testid="topo-transformed-layer"
-                className="w-full h-full relative"
+                className="relative select-none"
                 style={{
+                  height: '100%',
+                  aspectRatio: `${W} / ${H}`,
+                  minWidth: '100%',
                   transformOrigin: '0 0',
                   transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoomLevel})`,
                   transition:
@@ -712,9 +765,7 @@ export default function InteractiveTopo({
                   width={W}
                   height={H}
                   fetchpriority="high"
-                  className={`w-full h-full ${
-                    isExpandedSize ? 'object-cover' : 'object-contain'
-                  } block transition-filter duration-200 ${
+                  className={`w-full h-full block transition-filter duration-200 ${
                     selectedRoute ? 'brightness-[0.80] contrast-[1.05]' : 'brightness-95'
                   }`}
                   draggable={false}
@@ -724,7 +775,7 @@ export default function InteractiveTopo({
                 <svg
                   ref={svgRef}
                   viewBox={`0 0 ${W} ${H}`}
-                  preserveAspectRatio={isExpandedSize ? "xMidYMid slice" : "xMidYMid meet"}
+                  preserveAspectRatio="none"
                   className="absolute inset-0 w-full h-full"
                   onClick={(e) => {
                     if (pointerMovedDistRef.current > 5) return;
