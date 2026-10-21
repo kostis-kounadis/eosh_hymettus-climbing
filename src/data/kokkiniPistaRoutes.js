@@ -3,6 +3,9 @@
 // calibrated against the extracted 1470x893 (Wall 1) and 1470x719 (Wall 2) topo photos.
 
 export const FRENCH_GRADE_ORDER = [
+  '4a',
+  '4b',
+  '4c',
   '5a',
   '5b',
   '5c',
@@ -13,9 +16,18 @@ export const FRENCH_GRADE_ORDER = [
   '6c',
   '6c+',
   '7a',
+  '7a+',
+  '7b',
+  '7b+',
+  '7c',
+  '8a',
+  'A1',
 ];
 
 export const UIAA_BY_FRENCH = {
+  '4a': 'IV',
+  '4b': 'IV+',
+  '4c': 'IV+ / V-',
   '5a': 'V-',
   '5b': 'V',
   '5c': 'V+ / VI-',
@@ -26,9 +38,17 @@ export const UIAA_BY_FRENCH = {
   '6c': 'VII+',
   '6c+': 'VIII-',
   '7a': 'VIII',
+  '7a+': 'VIII+',
+  '7b': 'VIII+ / IX-',
+  '7b+': 'IX-',
+  '7c': 'IX',
+  '8a': 'IX+',
+  'A1': 'A1',
 };
 
 export const UIAA_GRADE_ORDER = [
+  'IV',
+  'IV+',
   'V-',
   'V',
   'V+',
@@ -40,6 +60,11 @@ export const UIAA_GRADE_ORDER = [
   'VII+',
   'VIII-',
   'VIII',
+  'VIII+',
+  'IX-',
+  'IX',
+  'IX+',
+  'A1',
 ];
 
 // Grade color bands & hex codes:

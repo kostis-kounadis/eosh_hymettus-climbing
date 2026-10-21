@@ -163,12 +163,23 @@ export default function SelectedRouteDetailPanel({
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-semibold text-gray-600 border-gray-200 py-0"
-                >
-                  {isGr ? `Τμήμα ${route.wall}` : `Wall ${route.wall}`}
-                </Badge>
+                {route.wall && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-semibold text-gray-600 border-gray-200 py-0"
+                  >
+                    {isGr ? `Τμήμα ${route.wall}` : `Wall ${route.wall}`}
+                  </Badge>
+                )}
+
+                {route.pitch && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-semibold text-sky-800 bg-sky-50 border-sky-200 py-0"
+                  >
+                    {route.pitch}
+                  </Badge>
+                )}
 
                 {isClassic && (
                   <span
@@ -230,21 +241,29 @@ export default function SelectedRouteDetailPanel({
                 {route.length}m
               </span>
               <span className="text-[10px] text-gray-500 block">
-                {isGr
+                {route.length >= 35
+                  ? isGr
+                    ? 'Σχοινί ≥ 70m (Πολυσχοινιά)'
+                    : 'Rope ≥ 70m (Multi-pitch)'
+                  : isGr
                   ? `Σχοινί ≥ ${route.length * 2}m`
                   : `Rope ≥ ${route.length * 2}m`}
               </span>
             </div>
           </div>
 
-          {/* Tile 3: Protection (Bolts / TR) */}
+          {/* Tile 3: Protection (Bolts / TR / Trad / Aid) */}
           <div className="p-2 rounded-lg bg-gray-50 border border-gray-200/80 flex flex-col justify-between">
             <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider flex items-center justify-between">
               <span>{isGr ? 'Ασφάλιση' : 'Protection'}</span>
               <Shield className="w-3 h-3 text-emerald-700" />
             </span>
             <div className="mt-1">
-              {route.isTopRopeOnly ? (
+              {route.protectionRaw === 'Trad' || route.protectionRaw === 'Aid' ? (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300">
+                  {route.protectionRaw === 'Aid' ? 'Aid / Τεχνητή' : 'Trad / Παραδοσιακή'}
+                </span>
+              ) : route.isTopRopeOnly ? (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300">
                   TR* Top-Rope
                 </span>

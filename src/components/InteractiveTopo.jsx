@@ -19,6 +19,7 @@ import {
   Maximize2,
   Minimize2,
   X,
+  Mountain,
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import {
@@ -78,11 +79,14 @@ export default function InteractiveTopo({
   isExpandedSize: controlledExpandedSize,
   onToggleExpandedSize,
   onResetFilters,
+  walls = KOKKINI_WALLS,
 }) {
   const [isOpen, setIsOpen] = useState(true);
   const [internalExpanded, setInternalExpanded] = useState(false);
   const isExpandedSize =
     controlledExpandedSize !== undefined ? controlledExpandedSize : internalExpanded;
+
+  const effectiveWalls = walls && walls.length > 0 ? walls : KOKKINI_WALLS;
 
   const handleToggleOpen = () => {
     setIsOpen((prev) => {
@@ -181,8 +185,8 @@ export default function InteractiveTopo({
   }, [isAdmin, editMode]);
 
   const wallConfig = useMemo(
-    () => KOKKINI_WALLS.find((w) => w.id === activeWall) || KOKKINI_WALLS[0],
-    [activeWall]
+    () => effectiveWalls.find((w) => w.id === activeWall) || effectiveWalls[0],
+    [effectiveWalls, activeWall]
   );
 
   const W = wallConfig.width;
@@ -795,17 +799,40 @@ export default function InteractiveTopo({
                   willChange: 'transform',
                 }}
               >
-                <img
-                  src={activeImageSrc}
-                  alt={isGr ? wallConfig.titleGr : wallConfig.titleEn}
-                  width={W}
-                  height={H}
-                  fetchpriority="high"
-                  className={`w-full h-full block transition-filter duration-200 ${
-                    selectedRoute ? 'brightness-[0.80] contrast-[1.05]' : 'brightness-95'
-                  }`}
-                  draggable={false}
-                />
+                {activeImageSrc ? (
+                  <img
+                    src={activeImageSrc}
+                    alt={isGr ? wallConfig.titleGr : wallConfig.titleEn}
+                    width={W}
+                    height={H}
+                    fetchpriority="high"
+                    className={`w-full h-full block transition-filter duration-200 ${
+                      selectedRoute ? 'brightness-[0.80] contrast-[1.05]' : 'brightness-95'
+                    }`}
+                    draggable={false}
+                  />
+                ) : (
+                  <div
+                    style={{ width: `${W}px`, height: `${H}px` }}
+                    className="flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 border border-neutral-800/80 relative select-none"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-400/25 flex items-center justify-center mb-3 shadow-inner">
+                      <Mountain className="w-7 h-7 text-blue-400" />
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-2.5">
+                      <Wrench className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isGr ? 'Αναμονή επεξεργασίας · Pending Argon' : 'Pending Topo Calibration · Argon'}</span>
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
+                      {isGr ? wallConfig.titleGr : wallConfig.titleEn}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-neutral-300 max-w-lg leading-relaxed">
+                      {isGr
+                        ? 'Το διανυσματικό topo και η χάραξη γραμμών (SVG) θα προστεθούν από τον Argon μόλις ολοκληρωθεί η επεξεργασία της φωτογραφίας του βράχου. Όλα τα τεχνικά δεδομένα και ο αναλυτικός πίνακας διαδρομών είναι πλήρως διαθέσιμα παρακάτω.'
+                        : 'Vector topo drawing (SVG lines) and high-res wall photography will be provided by Argon once image processing is complete. All route beta and interactive table features are fully active below.'}
+                    </p>
+                  </div>
+                )}
 
                 {/* Interactive SVG Overlay in true 1:1 image pixel coordinates (W x H) */}
                 <svg
@@ -1020,32 +1047,27 @@ export default function InteractiveTopo({
                 </button>
 
                 {/* Element 2: Wall Tabs Switcher (Aligned right on mobile, centered/left on desktop) */}
-                <div className="h-7 inline-flex items-center rounded-lg border border-white/20 bg-black/45 backdrop-blur-md p-0.5 text-xs font-semibold shadow-xs pointer-events-auto ml-auto sm:ml-0">
-                  <button
-                    type="button"
-                    onClick={() => onChangeWall(1)}
-                    className={`h-6 px-2 sm:px-2.5 rounded-md inline-flex items-center justify-center transition-colors ${
-                      activeWall === 1
-                        ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
-                        : 'text-white/90 hover:text-white font-medium'
-                    }`}
-                  >
-                    <span className="sm:hidden">{isGr ? 'Τοίχος 1' : 'Wall 1'}</span>
-                    <span className="hidden sm:inline">{isGr ? 'Τοίχος 1 (1–12)' : 'Wall 1 (1–12)'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onChangeWall(2)}
-                    className={`h-6 px-2 sm:px-2.5 rounded-md inline-flex items-center justify-center transition-colors ${
-                      activeWall === 2
-                        ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
-                        : 'text-white/90 hover:text-white font-medium'
-                    }`}
-                  >
-                    <span className="sm:hidden">{isGr ? 'Τοίχος 2' : 'Wall 2'}</span>
-                    <span className="hidden sm:inline">{isGr ? 'Τοίχος 2 (13–33)' : 'Wall 2 (13–33)'}</span>
-                  </button>
-                </div>
+                {effectiveWalls.length > 1 && (
+                  <div className="h-7 inline-flex items-center rounded-lg border border-white/20 bg-black/45 backdrop-blur-md p-0.5 text-xs font-semibold shadow-xs pointer-events-auto ml-auto sm:ml-0">
+                    {effectiveWalls.map((w) => (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => onChangeWall(w.id)}
+                        className={`h-6 px-2 sm:px-2.5 rounded-md inline-flex items-center justify-center transition-colors ${
+                          activeWall === w.id
+                            ? 'bg-white text-[#1e3a8a] font-bold shadow-xs'
+                            : 'text-white/90 hover:text-white font-medium'
+                        }`}
+                      >
+                        <span className="sm:hidden">{isGr ? `Τμήμα ${w.id}` : `Wall ${w.id}`}</span>
+                        <span className="hidden sm:inline">
+                          {isGr ? (w.titleGr.includes('(') ? w.titleGr.split('(')[1].replace(')', '') : w.titleGr) : (w.titleEn.includes('(') ? w.titleEn.split('(')[1].replace(')', '') : w.titleEn)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Right Controls (Desktop Only): Admin edit + Expand/Compact */}
                 <div className="hidden sm:flex items-center gap-1.5 pointer-events-auto sm:ml-auto">

@@ -52,6 +52,10 @@ export default function RouteListAndTable({
   const [copiedId, setCopiedId] = useState(null);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
+  const hasMultipleWalls = useMemo(
+    () => routes.some((r) => r.wall && r.wall > 1),
+    [routes]
+  );
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -308,13 +312,22 @@ export default function RouteListAndTable({
                       </span>
                     </td>
 
-                    {/* Route Name + Wall + ♫ / ★ */}
+                    {/* Route Name + Wall + Pitch + ♫ / ★ */}
                     <td className="py-2 px-3 font-semibold text-gray-900">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span>{isGr ? route.nameGr : route.nameEn}</span>
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          (T{route.wall})
-                        </span>
+                        {hasMultipleWalls && route.wall && (
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            (T{route.wall})
+                          </span>
+                        )}
+
+                        {/* Multi-Pitch badge if applicable */}
+                        {route.pitch && (
+                          <span className="text-[10px] font-semibold text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.2 rounded leading-tight">
+                            {route.pitch}
+                          </span>
+                        )}
 
                         {/* Musical Note (♫) for Classics, or Small Grey Stars for Regular Routes */}
                         {isClassic ? (
@@ -404,7 +417,7 @@ export default function RouteListAndTable({
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex flex-col items-center justify-center gap-0.5 leading-snug">
-                        {route.setters.map((s) => (
+                        {(route.setters || []).map((s) => (
                           <button
                             key={s}
                             type="button"
@@ -427,18 +440,22 @@ export default function RouteListAndTable({
                       className="hidden sm:table-cell py-2 px-2 text-center"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        type="button"
-                        onClick={() => onFilterByYear(String(route.year))}
-                        className="text-xs font-semibold text-gray-700 hover:text-[#1e3a8a] hover:underline"
-                        title={
-                          isGr
-                            ? `Φιλτράρισμα ανά έτος: ${route.year}`
-                            : `Filter by year: ${route.year}`
-                        }
-                      >
-                        {route.year}
-                      </button>
+                      {route.year ? (
+                        <button
+                          type="button"
+                          onClick={() => onFilterByYear(String(route.year))}
+                          className="text-xs font-semibold text-gray-700 hover:text-[#1e3a8a] hover:underline"
+                          title={
+                            isGr
+                              ? `Φιλτράρισμα ανά έτος: ${route.year}`
+                              : `Filter by year: ${route.year}`
+                          }
+                        >
+                          {route.year}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
 
                     {/* Member Logbook Mini Status Pill - Hidden on mobile & small tablet, visible from md (768px) */}
@@ -544,13 +561,21 @@ export default function RouteListAndTable({
                                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-100 text-[#1e3a8a] font-bold text-xs border border-blue-200"
                                 title={
                                   isGr
-                                    ? `Προτεινόμενο μήκος σχοινιού: τουλάχιστον ${route.length * 2}m`
+                                    ? route.length >= 35
+                                      ? 'Προτεινόμενο σχοινί: τουλάχιστον 70m ή διπλά σχοινιά για πολυσχοινιά'
+                                      : `Προτεινόμενο μήκος σχοινιού: τουλάχιστον ${route.length * 2}m`
+                                    : route.length >= 35
+                                    ? 'Recommended rope: at least 70m or half ropes for multi-pitch'
                                     : `Recommended rope length: at least ${route.length * 2}m`
                                 }
                               >
                                 <Cable className="w-3 h-3 text-[#1e3a8a]" />
                                 <span>
-                                  {isGr
+                                  {route.length >= 35
+                                    ? isGr
+                                      ? 'Σχοινί ≥ 70m (Πολυσχοινιά)'
+                                      : 'Rope ≥ 70m (Multi-pitch)'
+                                    : isGr
                                     ? `Σχοινί ≥ ${route.length * 2}m`
                                     : `Rope ≥ ${route.length * 2}m`}
                                 </span>

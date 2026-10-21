@@ -25,9 +25,8 @@ import {
 import { isCompletedTick } from '../hooks/useClimberLogbook';
 
 // Exact seasonal & hourly sun/shade schedule from cms_b4e1305033.pdf (Page 4):
-// "Στην «ΚΟΚΚΙΝΗ ΠΙΣΤΑ» το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 10.00 και από τις 11.00 και μετά μέχρι το βράδυ.
-//  Το χειμώνα και οι δυο πίστες είναι στην σκιά όλη την ημέρα..."
-export function getHymettusSunStatus(isGr) {
+// Tailored for each sector of Hymettus
+export function getHymettusSunStatus(isGr, sectorKey = 'kokkini') {
   let athensHour = 12;
   let athensMonth = 6; // 1..12
   try {
@@ -56,11 +55,92 @@ export function getHymettusSunStatus(isGr) {
       badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
       label: isGr ? 'Νύχτα στον Υμηττό' : 'Night hours',
       detail: isGr
-        ? 'Καλοκαίρι: Σκιά έως 10:00 & 11:00–βράδυ · Χειμώνας: Σκιά όλη μέρα'
-        : 'Summer: Shade until 10:00 & 11:00–dusk · Winter: Shade all day',
+        ? 'Ελέγξτε τις ώρες σκιάς για την επόμενη επίσκεψή σας'
+        : 'Check crag shade timetable for your next climb',
     };
   }
 
+  // Makis' Wall (Καρέας): summer shaded until 14:00
+  if (sectorKey === 'makis') {
+    const inShade = athensHour < 14;
+    return {
+      state: inShade ? 'shade' : 'sun',
+      badgeClass: inShade
+        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        : 'bg-amber-100 text-amber-900 border-amber-300',
+      label: inShade
+        ? isGr ? 'Σε Σκιά τώρα (έως 14:00)' : 'In Shade now (until 14:00)'
+        : isGr ? 'Ήλιος τώρα (από 14:00)' : 'In Sun now (from 14:00)',
+      detail: isGr
+        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 14:00.`
+        : `Athens ~${athensHour}:00 · In summer shaded morning until 14:00.`,
+    };
+  }
+
+  // Long Wall / Makrys Toichos (Καρέας): summer shaded until 17:00
+  if (sectorKey === 'makrys') {
+    const inShade = athensHour < 17;
+    return {
+      state: inShade ? 'shade' : 'sun',
+      badgeClass: inShade
+        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        : 'bg-amber-100 text-amber-900 border-amber-300',
+      label: inShade
+        ? isGr ? 'Σε Σκιά τώρα (έως 17:00)' : 'In Shade now (until 17:00)'
+        : isGr ? 'Ήλιος τώρα (από 17:00)' : 'In Sun now (from 17:00)',
+      detail: isGr
+        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 17:00.`
+        : `Athens ~${athensHour}:00 · In summer shaded morning until 17:00.`,
+    };
+  }
+
+  // Prasini Pista (Ηλιούπολη): summer shaded until 12:00
+  if (sectorKey === 'prasini') {
+    const inShade = athensHour < 12;
+    return {
+      state: inShade ? 'shade' : 'sun',
+      badgeClass: inShade
+        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        : 'bg-amber-100 text-amber-900 border-amber-300',
+      label: inShade
+        ? isGr ? 'Σε Σκιά τώρα (έως 12:00)' : 'In Shade now (until 12:00)'
+        : isGr ? 'Ήλιος τώρα (από 12:00)' : 'In Sun now (from 12:00)',
+      detail: isGr
+        ? `Ώρα Αθήνας ~${athensHour}:00 · Το καλοκαίρι έχει σκιά έως τις 12:00 (το χειμώνα έχει ήλιο τις μεσημεριανές ώρες).`
+        : `Athens ~${athensHour}:00 · In summer shaded until 12:00 (winter catches midday sun).`,
+    };
+  }
+
+  // Trypios Vrachos (Ηλιούπολη): main mass summer shaded until 16:00
+  if (sectorKey === 'trypios') {
+    const inShade = athensHour < 16;
+    return {
+      state: inShade ? 'shade' : 'sun',
+      badgeClass: inShade
+        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+        : 'bg-amber-100 text-amber-900 border-amber-300',
+      label: inShade
+        ? isGr ? 'Σε Σκιά τώρα (κύριος όγκος έως 16:00)' : 'In Shade now (main wall until 16:00)'
+        : isGr ? 'Ήλιος τώρα στον κυρίως όγκο' : 'In Sun now on main wall',
+      detail: isGr
+        ? `Ώρα Αθήνας ~${athensHour}:00 · Κύριος όγκος σε σκιά έως 16:00 (αριστερά ΑΣΕ έως 13:00, δεξιά Καμήλα έως το βράδυ).`
+        : `Athens ~${athensHour}:00 · Main mass in shade until 16:00 (left flank until 13:00, right flank until dusk).`,
+    };
+  }
+
+  // Gouva (Ηλιούπολη): variable shade in quarry
+  if (sectorKey === 'gouva') {
+    return {
+      state: 'shade',
+      badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      label: isGr ? 'Μεταβλητή Σκιά' : 'Variable Shade',
+      detail: isGr
+        ? `Ώρα Αθήνας ~${athensHour}:00 · Το ανάγλυφο της Γούβας προσφέρει προστατευμένη σκιά σε διάφορες γωνίες.`
+        : `Athens ~${athensHour}:00 · Quarry contour provides protected shade across various aspects.`,
+    };
+  }
+
+  // Kokkini Pista (Default)
   if (isWinter) {
     return {
       state: 'shade',
@@ -105,6 +185,8 @@ export default function GradeChartAndStats({
   getEntry,
   onOpenLogbookModal,
   histogramOnly = false,
+  cragInfo = CRAG_INFO_2018,
+  sectorKey = 'kokkini',
 }) {
   // Compact on mobile: collapsed by default on small viewports (<768px), open on desktop
   const [mobileExpanded, setMobileExpanded] = useState(() =>
@@ -116,7 +198,7 @@ export default function GradeChartAndStats({
   const [showCragGuideNotes, setShowCragGuideNotes] = useState(false);
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
-  const sunStatus = useMemo(() => getHymettusSunStatus(isGr), [isGr]);
+  const sunStatus = useMemo(() => getHymettusSunStatus(isGr, sectorKey), [isGr, sectorKey]);
 
   const gradeStats = useMemo(() => {
     const map = {};
@@ -139,7 +221,9 @@ export default function GradeChartAndStats({
         }
       }
     });
-    return FRENCH_GRADE_ORDER.map((g) => map[g]);
+    return FRENCH_GRADE_ORDER.map((g) => map[g]).filter(
+      (g) => g.total > 0 || (selectedGrades || []).includes(g.french)
+    );
   }, [routes, getEntry, isMemberOrAdmin]);
 
   const maxCount = useMemo(
@@ -679,11 +763,11 @@ export default function GradeChartAndStats({
                   <div className="font-bold text-gray-900 flex items-center gap-1.5">
                     <Compass className="w-4 h-4 text-[#1e3a8a]" />
                     <span>
-                      {isGr ? 'Πρόσβαση (10 λεπτά)' : 'Approach (10 minutes)'}
+                      {isGr ? `Πρόσβαση (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} λεπτά)` : `Approach (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} minutes)`}
                     </span>
                   </div>
                   <p className="leading-relaxed">
-                    {isGr ? CRAG_INFO_2018.approachGr : CRAG_INFO_2018.approachEn}
+                    {isGr ? (cragInfo || CRAG_INFO_2018).approachGr : (cragInfo || CRAG_INFO_2018).approachEn}
                   </p>
                 </div>
 
@@ -698,8 +782,8 @@ export default function GradeChartAndStats({
                   </div>
                   <p className="leading-relaxed">
                     {isGr
-                      ? CRAG_INFO_2018.rockAndSafetyGr
-                      : CRAG_INFO_2018.rockAndSafetyEn}
+                      ? (cragInfo || CRAG_INFO_2018).rockAndSafetyGr
+                      : (cragInfo || CRAG_INFO_2018).rockAndSafetyEn}
                   </p>
                 </div>
 
@@ -708,12 +792,12 @@ export default function GradeChartAndStats({
                     <Wrench className="w-3.5 h-3.5 text-[#1e3a8a]" />
                     <span>
                       {isGr
-                        ? 'Ανακατασκευή & Συντήρηση 2017'
-                        : '2017 Rebolting & Restoration'}
+                        ? 'Ανακατασκευή & Συντήρηση'
+                        : 'Rebolting & Restoration'}
                     </span>
                   </div>
                   <p className="leading-relaxed text-[11px] text-gray-600">
-                    {isGr ? CRAG_INFO_2018.reboltingGr : CRAG_INFO_2018.reboltingEn}
+                    {isGr ? (cragInfo || CRAG_INFO_2018).reboltingGr : (cragInfo || CRAG_INFO_2018).reboltingEn}
                   </p>
                 </div>
 
@@ -726,8 +810,8 @@ export default function GradeChartAndStats({
                   </div>
                   <p className="leading-relaxed text-[11px] text-gray-600">
                     {isGr
-                      ? CRAG_INFO_2018.guidebooksGr
-                      : CRAG_INFO_2018.guidebooksEn}
+                      ? (cragInfo || CRAG_INFO_2018).guidebooksGr
+                      : (cragInfo || CRAG_INFO_2018).guidebooksEn}
                   </p>
                 </div>
               </CardContent>

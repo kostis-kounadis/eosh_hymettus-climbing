@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import SectorsSectionPage from './components/SectorsSectionPage';
-import KokkiniPistaPage from './components/KokkiniPistaPage';
+import SectorDetailPage from './components/SectorDetailPage';
 
 export default function App() {
   const [lang, setLang] = useState('gr');
@@ -24,7 +24,73 @@ export default function App() {
         />
         <Route
           path="/kokkini-pista"
-          element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} />}
+          element={
+            <SectorDetailPage
+              sectorKey="kokkini"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/toichos-maki"
+          element={
+            <SectorDetailPage
+              sectorKey="makis"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/makrys-toichos"
+          element={
+            <SectorDetailPage
+              sectorKey="makrys"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/prasini-pista"
+          element={
+            <SectorDetailPage
+              sectorKey="prasini"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/trypios-vrachos"
+          element={
+            <SectorDetailPage
+              sectorKey="trypios"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/gouva"
+          element={
+            <SectorDetailPage
+              sectorKey="gouva"
+              isGr={isGr}
+              onToggleLang={toggleLang}
+            />
+          }
+        />
+        <Route
+          path="/sector/:sectorKey"
+          element={
+            <SectorDetailPage isGr={isGr} onToggleLang={toggleLang} />
+          }
+        />
+        <Route
+          path="*"
+          element={<Navigate to="/sectors" replace />}
         />
       </Routes>
     </HashRouter>

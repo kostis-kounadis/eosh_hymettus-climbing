@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   SlidersHorizontal,
   Heart,
@@ -28,9 +28,18 @@ export default function RouteFilterBar({
   totalCount,
   filteredCount,
   isDockedWithTable = false,
+  setters = ALL_SETTERS,
+  years = ALL_YEARS,
+  routes = [],
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
+
+  const visibleGrades = useMemo(() => {
+    if (!routes || routes.length === 0) return FRENCH_GRADE_ORDER;
+    const set = new Set(routes.map((r) => r.french).filter(Boolean));
+    return FRENCH_GRADE_ORDER.filter((g) => set.has(g));
+  }, [routes]);
 
   const update = (patch) => {
     onChangeFilters({ ...filters, ...patch });
@@ -162,7 +171,7 @@ export default function RouteFilterBar({
                 )}
               </div>
               <div className="flex flex-wrap gap-1">
-                {FRENCH_GRADE_ORDER.map((g) => {
+                {visibleGrades.map((g) => {
                   const active = filters.selectedGrades.includes(g);
                   return (
                     <button
@@ -199,7 +208,7 @@ export default function RouteFilterBar({
                   className="w-full h-7 px-2 rounded border border-gray-200 bg-white text-gray-800 text-xs"
                 >
                   <option value="all">{isGr ? 'Όλοι' : 'All setters'}</option>
-                  {ALL_SETTERS.map((s) => (
+                  {(setters || ALL_SETTERS).map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
@@ -217,8 +226,8 @@ export default function RouteFilterBar({
                   onChange={(e) => update({ year: e.target.value })}
                   className="w-full h-7 px-2 rounded border border-gray-200 bg-white text-gray-800 text-xs"
                 >
-                  <option value="all">{isGr ? 'Όλα (1960–2017)' : 'All years'}</option>
-                  {ALL_YEARS.map((y) => (
+                  <option value="all">{isGr ? 'Όλα τα έτη' : 'All years'}</option>
+                  {(years || ALL_YEARS).map((y) => (
                     <option key={y} value={String(y)}>
                       {y}
                     </option>
