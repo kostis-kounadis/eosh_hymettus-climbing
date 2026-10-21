@@ -91,7 +91,7 @@ export default function InteractiveTopo({
         // Collapsing resets topo selection, zoom/pan, and clears all filters
         onSelectRoute?.(null);
         setZoomLevel(1);
-        setPan({ x: 0, y: 0 });
+        setPan(clampPan(0, 0, 1));
         onResetFilters?.();
       }
       return next;
@@ -136,7 +136,9 @@ export default function InteractiveTopo({
     } else {
       // Reset zoom back to 1
       setZoomLevel(1);
-      setPan({ x: 0, y: 0 });
+      setTimeout(() => {
+        setPan(clampPan(0, 0, 1));
+      }, 60);
     }
   };
 
@@ -207,11 +209,33 @@ export default function InteractiveTopo({
     const vh = vp.clientHeight;
     const layerW = layer?.offsetWidth || vw;
     const layerH = layer?.offsetHeight || vh;
-    const minX = Math.min(0, vw - layerW * scale);
-    const minY = Math.min(0, vh - layerH * scale);
+    const scaledW = layerW * scale;
+    const scaledH = layerH * scale;
+
+    let minX, maxX;
+    if (scaledW <= vw) {
+      // Content is narrower than viewport: center it horizontally
+      minX = (vw - scaledW) / 2;
+      maxX = minX;
+    } else {
+      // Content is wider than viewport: pan between vw - scaledW and 0
+      minX = vw - scaledW;
+      maxX = 0;
+    }
+
+    let minY, maxY;
+    if (scaledH <= vh) {
+      // Content is shorter than viewport: center it vertically
+      minY = (vh - scaledH) / 2;
+      maxY = minY;
+    } else {
+      minY = vh - scaledH;
+      maxY = 0;
+    }
+
     return {
-      x: clamp(nextX, minX, 0),
-      y: clamp(nextY, minY, 0),
+      x: clamp(nextX, minX, maxX),
+      y: clamp(nextY, minY, maxY),
     };
   }, []);
 
@@ -302,6 +326,19 @@ export default function InteractiveTopo({
     }, 50);
     return () => clearTimeout(timer);
   }, [isExpandedSize, activeWall, selectedRoute, centerOnRoute, clampPan]);
+
+  // Keep layer centered on viewport resize when zoom is 1
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (zoomRef.current <= 1.01) {
+        setPan((prev) => clampPan(prev.x, prev.y, 1));
+      }
+    });
+    ro.observe(vp);
+    return () => ro.disconnect();
+  }, [clampPan]);
 
   // Detect stuck state using IntersectionObserver fallback (Modern Web Guidance: state-aware-sticky-headers)
   useEffect(() => {
@@ -550,7 +587,7 @@ export default function InteractiveTopo({
     const fy = e.clientY - rect.top;
     if (zoomRef.current > 1.2) {
       setZoomLevel(1);
-      setPan({ x: 0, y: 0 });
+      setPan(clampPan(0, 0, 1));
     } else {
       applyZoomAtPoint(2.2, fx, fy);
     }
@@ -749,7 +786,6 @@ export default function InteractiveTopo({
                 style={{
                   height: '100%',
                   aspectRatio: `${W} / ${H}`,
-                  minWidth: '100%',
                   transformOrigin: '0 0',
                   transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoomLevel})`,
                   transition:
@@ -1088,7 +1124,7 @@ export default function InteractiveTopo({
                   onClick={(e) => {
                     e.stopPropagation();
                     setZoomLevel(1);
-                    setPan({ x: 0, y: 0 });
+                    setPan(clampPan(0, 0, 1));
                   }}
                   className="absolute bottom-2 left-2 sm:left-auto sm:right-2 z-20 h-7 px-2 rounded-lg bg-black/75 hover:bg-black text-white text-[11px] font-semibold backdrop-blur-md border border-white/20 shadow-md inline-flex items-center gap-1 pointer-events-auto"
                 >
