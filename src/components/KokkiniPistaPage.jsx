@@ -815,8 +815,8 @@ export default function KokkiniPistaPage({ isGr, onToggleLang }) {
                         <span className="inline-flex items-center gap-1.5">
                           <Footprints className="w-3.5 h-3.5 text-amber-700" />
                           {isGr
-                            ? 'Μονοπάτι στο Wikiloc (προσωρινό)'
-                            : 'Wikiloc Trail (temporary)'}
+                            ? 'Μονοπάτι στο Wikiloc'
+                            : 'Wikiloc Trail'}
                         </span>
                         <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                       </a>

@@ -169,8 +169,8 @@ export const CRAG_INFO_2018 = {
   restorationShortEn:
     'Restored in 2017 (D. Titopoulos · SPAY / Ilioupoli / EOSH) with Inox 316L UIAA bolts & anchors.',
   approachMinutes: 10,
-  parkingMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.93475,23.76865',
-  cragMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.9355,23.7702',
+  parkingMapsUrl: 'https://maps.app.goo.gl/sM38vbPEhhC3bbRg7',
+  cragMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.93332705616715,23.774110112942495',
   wikilocUrl: 'https://loc.wiki/t/166954682?wa=sc',
   shadeGr:
     'Καλοκαίρι: σκιά από το πρωί έως τις 10:00 και από τις 11:00 έως το βράδυ. Χειμώνας: σκιά όλη την ημέρα.',

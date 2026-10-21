@@ -106,10 +106,10 @@ export default function InteractiveTopo({
       setInternalExpanded(next);
     }
     if (next) {
-      // Zoomed in view when expanding: on mobile fill the tall 75vh container (~2.1x), on desktop 1.45x/1.3x
+      // Zoomed in view when expanding: on mobile fill the ~48vh container (~1.65x), on desktop 1.45x/1.3x
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
       const targetZoom = isMobile
-        ? (selectedRoute ? 2.1 : 1.85)
+        ? (selectedRoute ? 1.65 : 1.45)
         : (selectedRoute ? 1.45 : 1.3);
       setZoomLevel(targetZoom);
       if (selectedRoute) {
@@ -677,7 +677,7 @@ export default function InteractiveTopo({
               onDoubleClick={handleDoubleClick}
               className={`relative mx-auto overflow-hidden transition-[height] duration-300 ${
                 isExpandedSize
-                  ? 'w-full h-[75vh] sm:h-auto max-w-[1140px] sm:max-h-[calc(100vh-280px)]'
+                  ? 'w-full h-[48vh] sm:h-auto max-w-[1140px] sm:max-h-[calc(100vh-280px)]'
                   : 'w-full max-h-[35vh]'
               } ${
                 zoomLevel > 1.01
@@ -1047,29 +1047,34 @@ export default function InteractiveTopo({
               )}
             </div>
 
-            {/* Compact Legend Bar */}
-            <div className="px-3 py-1.5 bg-neutral-900 text-gray-300 text-[11px] flex flex-wrap items-center gap-3 border-t border-neutral-800">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a] inline-block shadow-xs" />
-                <span>{gradeSystem === 'uiaa' ? 'III–VI-' : '3–5c'}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block shadow-xs" />
-                <span>{gradeSystem === 'uiaa' ? 'VI–VII+' : '6a–6c+'}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#dc2626] inline-block shadow-xs" />
-                <span>{gradeSystem === 'uiaa' ? 'VIII-–IX+' : '7a–7c+'}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#18181b] border border-white/40 inline-block shadow-xs" />
-                <span>{gradeSystem === 'uiaa' ? '≥X-' : '≥8a'}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-3.5 h-0.5 bg-yellow-400 inline-block border-b border-dashed border-yellow-300" />
-                <span className="text-yellow-300 font-medium">Top Rope*</span>
-              </span>
-            </div>
+            {/* 
+              [DISABLED FEATURE / AI NOTICE]: The compact topo bottom legend bar is intentionally deactivated per user simplification request.
+              Preserved here commented out in case re-enabling is requested in the future.
+              {false && (
+                <div className="px-3 py-1.5 bg-neutral-900 text-gray-300 text-[11px] flex flex-wrap items-center gap-3 border-t border-neutral-800">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a] inline-block shadow-xs" />
+                    <span>{gradeSystem === 'uiaa' ? 'III–VI-' : '3–5c'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] inline-block shadow-xs" />
+                    <span>{gradeSystem === 'uiaa' ? 'VI–VII+' : '6a–6c+'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#dc2626] inline-block shadow-xs" />
+                    <span>{gradeSystem === 'uiaa' ? 'VIII-–IX+' : '7a–7c+'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#18181b] border border-white/40 inline-block shadow-xs" />
+                    <span>{gradeSystem === 'uiaa' ? '≥X-' : '≥8a'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3.5 h-0.5 bg-yellow-400 inline-block border-b border-dashed border-yellow-300" />
+                    <span className="text-yellow-300 font-medium">Top Rope*</span>
+                  </span>
+                </div>
+              )}
+            */}
           </div>
         )}
       </div>
