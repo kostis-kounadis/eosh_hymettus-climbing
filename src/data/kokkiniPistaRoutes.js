@@ -277,8 +277,10 @@ export const KOKKINI_PISTA_ROUTES = [
     setters: ['Δ. Τιτόπουλος'],
     year: 2017,
     defaultStars: 3,
-    noteGr: 'Η δυσκολότερη διαδρομή της Κόκκινης Πίστας (VIII / 7a) σε απαιτητική πλάκα.',
-    noteEn: 'The hardest route at Kokkini Pista (VIII / 7a) on demanding technical slab/face.',
+    noteGr:
+      'Η δυσκολότερη διαδρομή της Κόκκινης Πίστας σε απαιτητική πλάκα (VIII / 7a). Αναφέρεται συχνά από επαναλήπτες ότι στην ανακατασκευή του 2017 το ρελέ τοποθετήθηκε χαμηλότερα παρακάμπτοντας το αρχικό 2ο crux, με αποτέλεσμα αρκετοί να θεωρούν τη βαθμολογία σήμερα πιο προσιτή για 7a.',
+    noteEn:
+      'The hardest route at Kokkini Pista on demanding technical slab/face (VIII / 7a). Climbers often note that during the 2017 restoration the anchor was placed lower, bypassing the original second crux, leading some to consider the grade more accessible for 7a.',
     svgPath: [
       [16.1, 59.5],
       [16.3, 47.0],
@@ -464,9 +466,9 @@ export const KOKKINI_PISTA_ROUTES = [
     defaultStars: 4,
     isClassic: true,
     noteGr:
-      'Η ιστορικότερη διαδρομή της Κόκκινης Πίστας! Πρωτοσκαρφαλώθηκε το 1960 από τον Πρόδρομο (Μάκη) Ιδοσίδη από τη χαρακτηριστική στέγη (στον οδηγό του 1991 είχε αναφερθεί εκ παραδρομής στους Δ. Στραβογένη – Μ. Χατζή). Πριν το 2017 είχε βρεθεί καρφωμένη με βύσματα από άγνωστους αναρριχητές.',
+      'Η ιστορικότερη διαδρομή της Κόκκινης Πίστας! Πρωτοσκαρφαλώθηκε το 1960 από τον Πρόδρομο (Μάκη) Ιδοσίδη από τη χαρακτηριστική στέγη (στον οδηγό του 1991 είχε αναφερθεί εκ παραδρομής στους Δ. Στραβογένη – Μ. Χατζή). Μοιράζεται το ρελέ με «Το Λάθος» (πριν το 2017 είχε βρεθεί καρφωμένη με βύσματα από άγνωστους αναρριχητές).',
     noteEn:
-      'The most historic climb at Kokkini Pista! First ascended in 1960 by pioneer Prodromos (Makis) Idosidis through the prominent roof (erroneously credited to D. Stravogenis – M. Chatzi in the 1991 guide). Found bolted by unknown climbers prior to 2017.',
+      'The most historic climb at Kokkini Pista! First ascended in 1960 by pioneer Prodromos (Makis) Idosidis through the prominent roof (erroneously credited to D. Stravogenis – M. Chatzi in the 1991 guide). Shares anchor with "To Lathos" (found bolted by unknown climbers prior to 2017).',
     svgPath: [
       [57.8, 74.5],
       [56.2, 62.0],
@@ -532,8 +534,10 @@ export const KOKKINI_PISTA_ROUTES = [
     setters: ['Δ. Τιτόπουλος'],
     year: 2017,
     defaultStars: 3,
-    noteGr: 'Χορταστική γραμμή 15 μέτρων (8 ασφάλειες) που προστέθηκε το 2017 δεξιά από την 5α.',
-    noteEn: 'Sustained 15m line (8 bolts) added in 2017 just right of 5a.',
+    noteGr:
+      'Χορταστική γραμμή 15 μέτρων (8 ασφάλειες) που προστέθηκε το 2017 δεξιά από την 5α. Μοιράζεται το ρελέ με την 5α (Ιστορική Στέγη).',
+    noteEn:
+      'Sustained 15m line (8 bolts) added in 2017 just right of 5a. Shares anchor with 5a (Historic Roof).',
     svgPath: [
       [61.3, 73.0],
       [59.0, 60.0],
@@ -979,9 +983,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 2,
     noteGr:
-      'Κλασική V / 5b δίπλα στη #18 (βρέθηκε καρφωμένη με βύσματα από άγνωστους αναρριχητές πριν το 2017).',
+      'Κλασική V / 5b δίπλα στη #18. Μοιράζεται το ρελέ με τη #20 (βρέθηκε καρφωμένη με βύσματα από άγνωστους αναρριχητές πριν το 2017).',
     noteEn:
-      'Classic V / 5b next to #18 (found bolted by unknown climbers prior to 2017).',
+      'Classic V / 5b next to #18. Shares anchor with #20 (found bolted by unknown climbers prior to 2017).',
     svgPath: [
       [46.1, 66.5],
       [45.5, 60.0],
@@ -1013,9 +1017,9 @@ export const KOKKINI_PISTA_ROUTES = [
     year: 1990,
     defaultStars: 2,
     noteGr:
-      'Μοιράζεται την κατάληξη ψηλά με τη #19 (είχε επίσης βρεθεί καρφωμένη από άγνωστους αναρριχητές πριν το 2017).',
+      'Μοιράζεται το ρελέ με τη #19 (είχε επίσης βρεθεί καρφωμένη από άγνωστους αναρριχητές πριν το 2017).',
     noteEn:
-      'Shares the upper finish area with #19 (also found bolted by unknown climbers prior to 2017).',
+      'Shares anchor with #19 (also found bolted by unknown climbers prior to 2017).',
     svgPath: [
       [50.1, 61.8],
       [48.2, 52.0],
@@ -1045,8 +1049,8 @@ export const KOKKINI_PISTA_ROUTES = [
     setters: ['Χρ. Κουνιάκης', 'P. Bailey'],
     year: 1991,
     defaultStars: 2,
-    noteGr: 'Ανοίχτηκε το 1991 από τους Κουνιάκη & Bailey, καταλήγει στο ίδιο ρελέ με την #22.',
-    noteEn: 'Opened in 1991 by Kouniakis & Bailey, sharing the top anchor with #22.',
+    noteGr: 'Ανοίχτηκε το 1991 από τους Κουνιάκη & Bailey. Μοιράζεται το ρελέ με τη #22.',
+    noteEn: 'Opened in 1991 by Kouniakis & Bailey. Shares anchor with #22.',
     svgPath: [
       [51.7, 60.5],
       [50.6, 52.0],
@@ -1078,8 +1082,8 @@ export const KOKKINI_PISTA_ROUTES = [
     setters: ['Χρ. Κουνιάκης', 'P. Bailey'],
     year: 1991,
     defaultStars: 3,
-    noteGr: 'Πολύ καλή VII- / 6b με 6 ασφάλειες σε 8 μέτρα.',
-    noteEn: 'Quality VII- / 6b with 6 bolts in 8m.',
+    noteGr: 'Πολύ καλή VII- / 6b με 6 ασφάλειες σε 8 μέτρα. Μοιράζεται το ρελέ με τη #21.',
+    noteEn: 'Quality VII- / 6b with 6 bolts in 8m. Shares anchor with #21.',
     svgPath: [
       [54.7, 60.0],
       [53.8, 50.0],
