@@ -1,12 +1,6 @@
 // ============================================================================
 // MT. HYMETTUS CLIMBING SECTORS DATABASE (EOSH 2018 + community updates)
-// 
-// NOTE ON GPS COORDINATES:
-// The latitude/longitude values below are PROVISIONAL PLACEHOLDERS.
-// When verified GPS coordinates are provided, replace the `lat` and `lng`
-// values directly in `PARKING_TRAILHEADS`, `AREA_BOUNDARIES`, and `sectors`.
-// The interactive map, Google Maps directions, and markers will immediately
-// update without any component logic changes.
+// Verified GPS Coordinates (WGS84)
 // ============================================================================
 
 export const PARKING_TRAILHEADS = {
@@ -18,8 +12,8 @@ export const PARKING_TRAILHEADS = {
     shortEn: 'Sof. Venizelou Parking (Gate)',
     areaGr: 'Ηλιούπολη',
     areaEn: 'Ilioupoli',
-    lat: 37.92968,
-    lng: 23.77165,
+    lat: 37.936472, // 37°56'11.3"N 23°46'06.5"E
+    lng: 23.768472,
     noteGr:
       'Αφήνετε το όχημα στο τέρμα της Λεωφ. Σοφοκλή Βενιζέλου (μπροστά στη μεταλλική πόρτα του Πυροφυλακίου). Από εκεί ανηφορίζετε 150μ τον χωματόδρομο και μπαίνετε ευθεία στο σηματοδοτημένο μονοπάτι του ρέματος (10′ για Κόκκινη/Πράσινη Πίστα).',
     noteEn:
@@ -34,8 +28,8 @@ export const PARKING_TRAILHEADS = {
     shortEn: 'Karea Monastery Parking',
     areaGr: 'Καρέας',
     areaEn: 'Karea',
-    lat: 37.93915,
-    lng: 23.77395,
+    lat: 37.942278, // 37°56'32.2"N 23°46'39.3"E
+    lng: 23.777583,
     noteGr:
       'Από τον Περιφερειακό Υμηττού στρίβετε στις πινακίδες για Καρέα (μεταλλική πεζογέφυρα) έως το πάρκινγκ της Μονής Αγ. Ιωάννη Καρέα. Δεξιά της εισόδου ξεκινά το σηματοδοτημένο μονοπάτι (5′ για Τοίχο του Μάκη + 5′ για Μακρύ Τοίχο).',
     noteEn:
@@ -158,8 +152,8 @@ export const sectors = [
     descGr:
       'Συμπαγής τοίχος πάνω από τη Μονή Καρέα, ιδανικός για Top Rope. Πολλές ιστορικές διαδρομές του Ιδοσίδη–Μαρτζούκου το 1963.',
     available: true,
-    lat: 37.93972,
-    lng: 23.77645,
+    lat: 37.940917, // 37°56'27.3"N 23°46'42.7"E
+    lng: 23.778528,
     approachMin: 5,
     parkingId: 'karea',
   },
@@ -180,8 +174,8 @@ export const sectors = [
     descGr:
       'Ο μεγαλύτερος εκπαιδευτικός βράχος του Καρέα, με 23 διαδρομές από τους πρωτοπόρους Μιχαηλίδη & Ιδοσίδη μέχρι σύγχρονες ασφαλισμένες γραμμές.',
     available: true,
-    lat: 37.939955,
-    lng: 23.777954,
+    lat: 37.940028, // 37°56'24.1"N 23°46'39.7"E
+    lng: 23.777694,
     approachMin: 10,
     parkingId: 'karea',
   },
@@ -202,8 +196,8 @@ export const sectors = [
     descGr:
       'Συνεχής κάθετος τοίχος με τεχνικό κάθετο σκαρφάλωμα. Ασφαλισμένη από Κουνιάκη & Bailey, 1990–1991.',
     available: true,
-    lat: 37.93338,
-    lng: 23.77265,
+    lat: 37.933333, // 37°55'60.0"N 23°46'28.5"E
+    lng: 23.774583,
     approachMin: 10,
     parkingId: 'ilioupoli',
   },
@@ -224,8 +218,8 @@ export const sectors = [
     descGr:
       'Ο μεγαλύτερος τομέας στον Υμηττό με 40 διαδρομές από αρχάριες έως τη διάσημη στέγη που πρωτοσκαρφαλώθηκε από τον Ιδοσίδη το 1960.',
     available: true,
-    lat: 37.932795,
-    lng: 23.773192,
+    lat: 37.933306, // 37°55'59.9"N 23°46'25.4"E
+    lng: 23.773722,
     approachMin: 10,
     parkingId: 'ilioupoli',
   },
@@ -246,8 +240,8 @@ export const sectors = [
     descGr:
       'Πολυσχοινιά πεδίο με τις πιο απαιτητικές διαδρομές στον Υμηττό: ΑΣΕ (8a / IX+), Μουτάμπα (7b+), και κλασικές πολυσχοινιές (Όριο, Δύναμις, Ματσέτα, Adhoc). Συνιστάται σχοινί 70μ.',
     available: true,
-    lat: 37.932476,
-    lng: 23.774808,
+    lat: 37.932750, // 37°55'57.9"N 23°46'29.5"E
+    lng: 23.774861,
     approachMin: 20,
     parkingId: 'ilioupoli',
   },
@@ -268,8 +262,8 @@ export const sectors = [
     descGr:
       'Μικρό πεδίο που άνοιξαν οι Καραγιάννης–Florian–Σωτηράκης. Λαξευμένος ασβεστόλιθος και μάρμαρο, με διαδρομές από 4a έως την Έξοδο Κινδύνου (7b).',
     available: true,
-    lat: 37.93015,
-    lng: 23.77595,
+    lat: 37.931722, // 37°55'54.2"N 23°46'10.7"E
+    lng: 23.769639,
     approachMin: 8,
     parkingId: 'ilioupoli',
   },

@@ -47,7 +47,7 @@ export default function HymettusMapCanvas({
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [37.935, 23.7745],
+      center: [37.9363, 23.7741],
       zoom: 14,
       zoomControl: false,
       scrollWheelZoom: true,
