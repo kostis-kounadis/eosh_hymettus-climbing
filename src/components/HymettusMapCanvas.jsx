@@ -77,8 +77,12 @@ export default function HymettusMapCanvas({
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
+    // Geographic center adjusted so pins are visually centered on both axes
+    const centerLat = 37.9380;
+    const centerLng = 23.7735;
+
     const map = L.map(mapContainerRef.current, {
-      center: [37.9363, 23.7741],
+      center: [centerLat, centerLng],
       zoom: 14,
       zoomControl: false,
       scrollWheelZoom: true,
@@ -142,6 +146,7 @@ export default function HymettusMapCanvas({
 
     setTimeout(() => {
       map.invalidateSize();
+      map.setView([centerLat, centerLng], 14);
     }, 120);
 
     return () => {
@@ -181,7 +186,7 @@ export default function HymettusMapCanvas({
 
   return (
     <div
-      className="relative w-full h-[360px] sm:h-[420px] rounded-xl border border-gray-200 overflow-hidden shadow-xs bg-slate-100"
+      className="relative w-full h-[240px] sm:h-[280px] rounded-xl border border-gray-200 overflow-hidden shadow-xs bg-slate-100"
       data-testid="hymettus-map-canvas-container"
     >
       {/* Floating Glass Buttons for each crag */}
