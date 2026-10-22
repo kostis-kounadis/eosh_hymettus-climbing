@@ -61,8 +61,9 @@ dialog::backdrop {
   backdrop-filter: blur(3px);
 }
 
-/* Custom Leaflet Tooltip for Crag Pins */
-.crag-map-tooltip {
+/* Custom Leaflet Tooltip for Crag & Parking Pins */
+.crag-map-tooltip,
+.parking-map-tooltip {
   background: rgba(15, 23, 42, 0.92) !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   border-radius: 6px !important;
@@ -71,9 +72,11 @@ dialog::backdrop {
   font-weight: 700 !important;
   padding: 4px 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  white-space: nowrap !important;
 }
 
-.crag-map-tooltip::before {
+.crag-map-tooltip::before,
+.parking-map-tooltip::before {
   border-top-color: rgba(15, 23, 42, 0.92) !important;
 }
 

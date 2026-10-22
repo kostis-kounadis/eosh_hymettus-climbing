@@ -1,21 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { sectors } from '../data/sectorsData';
+import {
+  sectors,
+  PARKING_TRAILHEADS,
+  getGoogleMapsDirectionsUrl,
+} from '../data/sectorsData';
 
-// Simple common SVG map pin
+// Simple common SVG map pin for climbing crags
 const createPinIcon = (isHighlighted = false) => {
   const pinColor = isHighlighted ? '#1e3a8a' : '#dc2626';
-  const scale = isHighlighted ? 'scale(1.25)' : 'scale(1)';
+  const scale = isHighlighted ? 'scale(1.2)' : 'scale(1)';
 
   return L.divIcon({
     className: 'custom-common-pin',
     html: `
       <div style="
-        transform: translate(-50%, -100%) ${scale};
+        width: 24px;
+        height: 32px;
+        transform-origin: 12px 32px;
+        transform: ${scale};
         transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: pointer;
-        filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35));
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
       ">
         <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill="${pinColor}"/>
@@ -23,8 +30,32 @@ const createPinIcon = (isHighlighted = false) => {
         </svg>
       </div>
     `,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
+    iconSize: [24, 32],
+    iconAnchor: [12, 32],
+    tooltipAnchor: [0, -32],
+  });
+};
+
+// Parking pin (Blue pin with white circle and 'P')
+const createParkingIcon = () => {
+  return L.divIcon({
+    className: 'custom-parking-pin',
+    html: `
+      <div style="
+        width: 24px;
+        height: 32px;
+        cursor: pointer;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+      ">
+        <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill="#1d4ed8"/>
+          <circle cx="12" cy="11" r="7" fill="#ffffff"/>
+          <text x="12" y="14.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10.5" fill="#1d4ed8">P</text>
+        </svg>
+      </div>
+    `,
+    iconSize: [24, 32],
+    iconAnchor: [12, 32],
     tooltipAnchor: [0, -32],
   });
 };
@@ -62,16 +93,39 @@ export default function HymettusMapCanvas({
       maxZoom: 19,
     }).addTo(map);
 
+    // Add Parking Pins (Ilioupoli & Kareas)
+    Object.values(PARKING_TRAILHEADS).forEach((p) => {
+      const parkingMarker = L.marker([p.lat, p.lng], {
+        icon: createParkingIcon(),
+      }).addTo(map);
+
+      parkingMarker.bindTooltip(
+        isGr ? p.shortGr || p.nameGr : p.shortEn || p.nameEn,
+        {
+          direction: 'top',
+          offset: [0, -2],
+          className: 'parking-map-tooltip',
+        }
+      );
+
+      parkingMarker.on('click', () => {
+        window.open(
+          getGoogleMapsDirectionsUrl(p.lat, p.lng, 'driving'),
+          '_blank'
+        );
+      });
+    });
+
     // Add simple common pins for the 6 crags
     sectors.forEach((s) => {
       const marker = L.marker([s.lat, s.lng], {
         icon: createPinIcon(false),
       }).addTo(map);
 
-      // Tooltip with crag name
+      // Tooltip with crag name sits just above the pin and centered
       marker.bindTooltip(isGr ? s.nameGr : s.nameEn, {
         direction: 'top',
-        offset: [0, -32],
+        offset: [0, -2],
         className: 'crag-map-tooltip',
       });
 
