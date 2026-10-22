@@ -1,293 +1,91 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  Navigation,
-  MapPin,
-  Footprints,
-  ExternalLink,
-  Copy,
-  Check,
-  Layers,
-  Car,
-  Mountain,
-  Sun,
-  ArrowRight,
-  Compass,
-} from 'lucide-react';
-import {
-  sectors,
-  PARKING_TRAILHEADS,
-  APPROACH_TRAILS,
-  AREA_BOUNDARIES,
-  getGoogleMapsDirectionsUrl,
-  getGoogleMapsPinUrl,
-  getGoogleMapsEmbedUrl,
-} from '../data/sectorsData';
+import { sectors } from '../data/sectorsData';
 
-const TILE_LAYERS = {
-  satellite: {
-    id: 'satellite',
-    labelGr: 'Δορυφόρος',
-    labelEn: 'Satellite',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
-    maxZoom: 19,
-  },
-  topo: {
-    id: 'topo',
-    labelGr: 'Μονοπάτια (OSM)',
-    labelEn: 'Trails (OSM)',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 19,
-  },
+// Simple common SVG map pin
+const createPinIcon = (isHighlighted = false) => {
+  const pinColor = isHighlighted ? '#1e3a8a' : '#dc2626';
+  const scale = isHighlighted ? 'scale(1.25)' : 'scale(1)';
+
+  return L.divIcon({
+    className: 'custom-common-pin',
+    html: `
+      <div style="
+        transform: translate(-50%, -100%) ${scale};
+        transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35));
+      ">
+        <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.37258 0 0 5.37258 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37258 18.6274 0 12 0Z" fill="${pinColor}"/>
+          <circle cx="12" cy="11" r="4.5" fill="#ffffff"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+    tooltipAnchor: [0, -32],
+  });
 };
 
 export default function HymettusMapCanvas({
   isGr,
-  initialSectorKey = 'kokkini',
-  initialAreaFilter = 'all', // 'all' | 'Ilioupoli' | 'Karea'
-  selectedSectorKey: externalSectorKey,
-  onSelectSector,
+  hoveredSectorKey,
   onOpenSector,
-  onOpenKokkiniTopo,
-  compactHeight = false,
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const tileLayerRef = useRef(null);
   const markersRef = useRef({});
 
-  const [mapMode, setMapMode] = useState('satellite'); // 'satellite' | 'topo' | 'gmaps'
-  const [areaFilter, setAreaFilter] = useState(initialAreaFilter);
-  const [internalSectorKey, setInternalSectorKey] = useState(initialSectorKey);
-  const [copiedCoords, setCopiedCoords] = useState(false);
+  const [internalHoveredKey, setInternalHoveredKey] = useState(null);
 
-  const activeSectorKey = externalSectorKey !== undefined ? externalSectorKey : internalSectorKey;
+  const effectiveHoveredKey = hoveredSectorKey || internalHoveredKey;
 
-  const handleSelectSector = (key) => {
-    setInternalSectorKey(key);
-    if (onSelectSector) {
-      onSelectSector(key);
-    }
-  };
-
-  const activeSector =
-    sectors.find((s) => s.key === activeSectorKey) ||
-    sectors.find((s) => s.key === 'kokkini') ||
-    sectors[0];
-
-  const activeParking =
-    PARKING_TRAILHEADS[activeSector.parkingId] || PARKING_TRAILHEADS.ilioupoli;
-
-  // Initialize Leaflet Map once
+  // Initialize Leaflet Map once with OpenStreetMap
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    const initialCenter =
-      initialAreaFilter === 'Ilioupoli'
-        ? [37.9316, 23.7732]
-        : [37.9352, 23.7745];
-    const initialZoom = initialAreaFilter === 'Ilioupoli' ? 16 : 14;
-
     const map = L.map(mapContainerRef.current, {
-      center: initialCenter,
-      zoom: initialZoom,
+      center: [37.935, 23.7745],
+      zoom: 14,
       zoomControl: false,
       scrollWheelZoom: true,
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    const tileCfg = TILE_LAYERS.satellite;
-    tileLayerRef.current = L.tileLayer(tileCfg.url, {
-      attribution: tileCfg.attribution,
-      maxZoom: tileCfg.maxZoom,
+    // Only OpenStreetMap layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
     }).addTo(map);
 
-    // Draw Area Boundary Polygons (theCrag-style enclosing areas for Ilioupoli and Kareas)
-    AREA_BOUNDARIES.forEach((area) => {
-      const polygon = L.polygon(area.coords, {
-        color: area.color,
-        weight: 2.2,
-        dashArray: '6, 6',
-        fillColor: area.fillColor,
-        fillOpacity: 0.12,
-      }).addTo(map);
-
-      polygon.bindTooltip(
-        `<div style="font-family:system-ui,sans-serif;font-weight:700;font-size:11px;color:${area.color};">
-          ${isGr ? area.nameGr : area.nameEn}
-        </div>`,
-        {
-          sticky: true,
-          direction: 'center',
-          className: 'area-boundary-tooltip',
-        }
-      );
-
-      polygon.on('click', () => {
-        handleZoomArea(area.id === 'ilioupoli' ? 'Ilioupoli' : 'Karea');
-      });
-    });
-
-    // Draw approach footpaths
-    APPROACH_TRAILS.forEach((trail) => {
-      const polyline = L.polyline(trail.coords, {
-        color: trail.area === 'Ilioupoli' ? '#f59e0b' : '#38bdf8',
-        weight: 3.5,
-        dashArray: '7, 7',
-        opacity: 0.92,
-      }).addTo(map);
-      polyline.bindTooltip(isGr ? trail.labelGr : trail.labelEn, {
-        sticky: true,
-        direction: 'top',
-      });
-    });
-
-    // Draw Parking / Trailhead Gate pins
-    Object.values(PARKING_TRAILHEADS).forEach((p) => {
-      const parkingIcon = L.divIcon({
-        className: 'custom-parking-pin',
-        html: `
-          <div style="
-            display:flex;align-items:center;gap:4px;
-            background:#1d4ed8;color:#fff;
-            border:2px solid #fff;border-radius:9999px;
-            padding:3px 8px;font-size:11px;font-weight:800;
-            box-shadow:0 4px 12px rgba(0,0,0,0.35);
-            white-space:nowrap;transform:translate(-50%,-50%);
-          ">
-            <span style="background:#fff;color:#1d4ed8;border-radius:4px;padding:0 4px;font-weight:900;">P</span>
-            <span>${isGr ? p.shortGr : p.shortEn}</span>
-          </div>
-        `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-      });
-
-      const marker = L.marker([p.lat, p.lng], { icon: parkingIcon }).addTo(map);
-      marker.bindPopup(`
-        <div style="font-family:system-ui,sans-serif;min-width:210px;">
-          <div style="font-size:11px;font-weight:700;color:#1d4ed8;text-transform:uppercase;margin-bottom:2px;">
-            🚗 ${isGr ? 'Σημείο Στάθμευσης & Αφετηρία' : 'Parking & Trailhead Gate'}
-          </div>
-          <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:4px;">
-            ${isGr ? p.nameGr : p.nameEn}
-          </div>
-          <div style="font-size:11px;color:#4b5563;line-height:1.35;margin-bottom:8px;">
-            ${isGr ? p.noteGr : p.noteEn}
-          </div>
-          <a
-            href="${getGoogleMapsDirectionsUrl(p.lat, p.lng, 'driving')}"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="
-              display:inline-flex;align-items:center;gap:5px;
-              background:#1e3a8a;color:#fff;text-decoration:none;
-              padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;
-            "
-          >
-            🚗 ${isGr ? 'Οδηγίες Google Maps (Πάρκινγκ)' : 'Google Maps Directions (Parking)'}
-          </a>
-        </div>
-      `);
-    });
-
-    // Draw the 6 Crag Sector pins (theCrag-inspired badge markers)
+    // Add simple common pins for the 6 crags
     sectors.forEach((s) => {
-      const isKokkini = s.key === 'kokkini';
-      const isSelected = s.key === activeSectorKey;
-      const badgeBg = isKokkini
-        ? '#dc2626'
-        : s.area === 'Karea'
-          ? '#059669'
-          : '#2563eb';
+      const marker = L.marker([s.lat, s.lng], {
+        icon: createPinIcon(false),
+      }).addTo(map);
 
-      const cragIcon = L.divIcon({
-        className: `custom-crag-pin-${s.key}`,
-        html: `
-          <div style="
-            display:flex;flex-direction:column;align-items:center;
-            transform:translate(-50%,-100%);
-            cursor:pointer;
-          ">
-            <div style="
-              width:28px;height:28px;border-radius:9999px;
-              background:${badgeBg};color:#ffffff;
-              display:flex;align-items:center;justify-content:center;
-              font-size:12px;font-weight:900;
-              box-shadow:0 3px 10px rgba(0,0,0,0.45);
-              border:2.5px solid ${isSelected ? '#fde047' : '#ffffff'};
-            ">
-              ${s.routes}
-            </div>
-            <div style="
-              margin-top:2px;
-              background:${isSelected ? '#1e3a8a' : 'rgba(15, 23, 42, 0.9)'};
-              color:#ffffff;
-              font-size:10px;font-weight:700;
-              padding:2px 7px;border-radius:9999px;
-              white-space:nowrap;
-              box-shadow:0 2px 6px rgba(0,0,0,0.35);
-              border:1px solid rgba(255,255,255,0.25);
-            ">
-              ${isGr ? s.nameGr : s.nameGr}
-            </div>
-          </div>
-        `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
+      // Tooltip with crag name
+      marker.bindTooltip(isGr ? s.nameGr : s.nameEn, {
+        direction: 'top',
+        offset: [0, -32],
+        className: 'crag-map-tooltip',
       });
-
-      const marker = L.marker([s.lat, s.lng], { icon: cragIcon }).addTo(map);
-
-      // Bind interactive Leaflet popup
-      marker.bindPopup(`
-        <div style="font-family:system-ui,-apple-system,sans-serif;min-width:210px;padding:2px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px;">
-            <span style="font-size:10px;font-weight:700;color:#1e3a8a;text-transform:uppercase;background:#eff6ff;padding:2px 6px;border-radius:4px;">
-              ${isGr ? s.areaGr : s.area}
-            </span>
-            <span style="font-size:11px;font-weight:800;color:#059669;">
-              ${s.routes} ${isGr ? 'διαδρομές' : 'routes'}
-            </span>
-          </div>
-          <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;">
-            ${isGr ? s.nameGr : s.nameEn}
-          </div>
-          <div style="font-size:11px;color:#475569;margin-bottom:8px;line-height:1.4;">
-            🧗 ${s.grades}<br/>
-            ⏱️ ${s.approachMin}′ ${isGr ? 'πεζοπορία' : 'walk'}
-          </div>
-          <div style="display:flex;gap:6px;margin-top:6px;">
-            <a href="#${s.path}" style="
-              flex:1;text-align:center;background:#1e3a8a;color:#ffffff;
-              padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;
-              text-decoration:none;display:inline-block;
-            ">
-              ${isGr ? 'Άνοιγμα Topo →' : 'Open Topo →'}
-            </a>
-            <a href="${getGoogleMapsDirectionsUrl(s.lat, s.lng, 'walking')}" target="_blank" rel="noopener noreferrer" title="${isGr ? 'Στίγμα στο Google Maps' : 'Crag Pin on Google Maps'}" style="
-              background:#f1f5f9;color:#0f172a;padding:6px 9px;border-radius:6px;
-              font-size:11px;font-weight:600;text-decoration:none;display:inline-block;border:1px solid #cbd5e1;
-            ">
-              🧭
-            </a>
-          </div>
-        </div>
-      `);
 
       marker.on('click', () => {
-        handleSelectSector(s.key);
+        if (onOpenSector && s.path) {
+          onOpenSector(s.path);
+        }
       });
+
       markersRef.current[s.key] = marker;
     });
 
     mapInstanceRef.current = map;
 
-    // Ensure proper size calculation when rendered inside modals or grids
     setTimeout(() => {
       map.invalidateSize();
     }, 120);
@@ -298,455 +96,72 @@ export default function HymettusMapCanvas({
     };
   }, []);
 
-  // Switch tile layer between Satellite and Topo/OSM
+  // Update tooltips and pin highlight when hovered (via glass button, pin, or card below)
   useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map || mapMode === 'gmaps') return;
-
-    const tileCfg = TILE_LAYERS[mapMode] || TILE_LAYERS.satellite;
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-    tileLayerRef.current = L.tileLayer(tileCfg.url, {
-      attribution: tileCfg.attribution,
-      maxZoom: tileCfg.maxZoom,
-    }).addTo(map);
-
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 60);
-  }, [mapMode]);
-
-  // Fly to selected sector & update marker highlight when activeSectorKey changes
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map || !activeSector) return;
-
     sectors.forEach((s) => {
       const marker = markersRef.current[s.key];
       if (!marker) return;
-      const isKokkini = s.key === 'kokkini';
-      const isSelected = s.key === activeSectorKey;
-      const badgeBg = isSelected
-        ? '#dc2626'
-        : isKokkini
-          ? '#b91c1c'
-          : s.area === 'Karea'
-            ? '#059669'
-            : '#2563eb';
-      const scale = isSelected ? 'scale(1.15)' : 'scale(1)';
-      const ring = isSelected
-        ? '0 0 0 4px rgba(220,38,38,0.38), 0 6px 16px rgba(0,0,0,0.5)'
-        : '0 3px 10px rgba(0,0,0,0.45)';
 
-      if (isSelected) {
+      const isHovered = effectiveHoveredKey === s.key;
+      marker.setIcon(createPinIcon(isHovered));
+
+      if (isHovered) {
         marker.setZIndexOffset(1000);
+        marker.openTooltip();
       } else {
         marker.setZIndexOffset(0);
+        marker.closeTooltip();
       }
-
-      marker.setIcon(
-        L.divIcon({
-          className: `custom-crag-pin-${s.key}`,
-          html: `
-            <div style="
-              display:flex;flex-direction:column;align-items:center;
-              transform:translate(-50%,-100%) ${scale};
-              transition:all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-              cursor:pointer;
-            ">
-              <div style="
-                width:28px;height:28px;border-radius:9999px;
-                background:${badgeBg};color:#ffffff;
-                display:flex;align-items:center;justify-content:center;
-                font-size:12px;font-weight:900;
-                box-shadow:${ring};
-                border:2.5px solid ${isSelected ? '#fde047' : '#ffffff'};
-              ">
-                ${s.routes}
-              </div>
-              <div style="
-                margin-top:2px;
-                background:${isSelected ? '#1e3a8a' : 'rgba(15, 23, 42, 0.92)'};
-                color:#ffffff;
-                font-size:10px;font-weight:700;
-                padding:2px 7px;border-radius:9999px;
-                white-space:nowrap;
-                box-shadow:0 2px 6px rgba(0,0,0,0.35);
-                border:1px solid ${isSelected ? '#93c5fd' : 'rgba(255,255,255,0.25)'};
-              ">
-                ${isGr ? s.nameGr : s.nameEn.split(' (')[0]}
-              </div>
-            </div>
-          `,
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        })
-      );
     });
-  }, [activeSectorKey, isGr]);
+  }, [effectiveHoveredKey, isGr]);
 
-  const handleZoomArea = (area) => {
-    setAreaFilter(area);
+  const handleCragClick = (s) => {
     const map = mapInstanceRef.current;
-    if (!map) return;
-
-    if (area === 'Ilioupoli') {
-      map.flyTo([37.9316, 23.7733], 16, { duration: 0.65 });
-      handleSelectSector('kokkini');
-    } else if (area === 'Karea') {
-      map.flyTo([37.9396, 23.776], 16, { duration: 0.65 });
-      handleSelectSector('makis');
-    } else {
-      map.flyTo([37.935, 23.7745], 14, { duration: 0.65 });
+    if (map) {
+      map.flyTo([s.lat, s.lng], 16, { duration: 0.5 });
+    }
+    if (onOpenSector && s.path) {
+      onOpenSector(s.path);
     }
   };
-
-  const handleFocusSectorPin = (s) => {
-    handleSelectSector(s.key);
-    const map = mapInstanceRef.current;
-    if (map && mapMode !== 'gmaps') {
-      map.flyTo([s.lat, s.lng], 17, { duration: 0.6 });
-    }
-  };
-
-  const handleCopyCoords = async () => {
-    const text = `${activeSector.lat}, ${activeSector.lng}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedCoords(true);
-      setTimeout(() => setCopiedCoords(false), 2000);
-    } catch {
-      // Fallback ignored
-    }
-  };
-
-  const drivingToParkingUrl = getGoogleMapsDirectionsUrl(
-    activeParking.lat,
-    activeParking.lng,
-    'driving'
-  );
-  const walkingToCragUrl = getGoogleMapsDirectionsUrl(
-    activeSector.lat,
-    activeSector.lng,
-    'walking'
-  );
-  const cragPinGoogleUrl = getGoogleMapsPinUrl(
-    activeSector.lat,
-    activeSector.lng
-  );
-  const keylessEmbedUrl = getGoogleMapsEmbedUrl(
-    activeSector.lat,
-    activeSector.lng,
-    16,
-    'h'
-  );
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-xl shadow-xs overflow-hidden"
-      data-testid="hymettus-map-card"
+      className="relative w-full h-[360px] sm:h-[420px] rounded-xl border border-gray-200 overflow-hidden shadow-xs bg-slate-100"
+      data-testid="hymettus-map-canvas-container"
     >
-      {/* Top Map Toolbar: Area Filter Pills + Layer Switcher (Satellite / OSM / Google Maps Embed) */}
-      <div className="px-3 sm:px-4 py-2.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 mr-1">
-            <Compass className="w-4 h-4" />
-            <span>
-              {isGr
-                ? 'Χάρτης Πεδίων & Πρόσβασης Υμηττού'
-                : 'Hymettus Crags & Approach Map'}
-            </span>
-          </span>
-
-          <div
-            className="inline-flex items-center rounded-lg bg-slate-800 p-0.5 border border-slate-700 text-[11px]"
-            role="group"
-            aria-label="Area Quick Zoom"
-          >
-            <button
-              type="button"
-              onClick={() => handleZoomArea('all')}
-              className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-                areaFilter === 'all'
-                  ? 'bg-[#1e3a8a] text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              {isGr ? 'Όλα (6)' : 'All (6)'}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleZoomArea('Ilioupoli')}
-              className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-                areaFilter === 'Ilioupoli'
-                  ? 'bg-[#1e3a8a] text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              {isGr ? 'Ηλιούπολη (4)' : 'Ilioupoli (4)'}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleZoomArea('Karea')}
-              className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-                areaFilter === 'Karea'
-                  ? 'bg-[#1e3a8a] text-white'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              {isGr ? 'Καρέας (2)' : 'Karea (2)'}
-            </button>
-          </div>
-        </div>
-
-        {/* Map Layer / Engine Switcher */}
-        <div
-          className="inline-flex items-center rounded-lg bg-slate-800 p-0.5 border border-slate-700 text-[11px]"
-          role="group"
-          aria-label="Map Layer Switcher"
-          data-testid="map-layer-switcher"
-        >
-          <Layers className="w-3.5 h-3.5 text-slate-400 ml-1.5 mr-1 hidden sm:inline" />
-          <button
-            type="button"
-            onClick={() => setMapMode('satellite')}
-            className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-              mapMode === 'satellite'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            {isGr ? 'Δορυφόρος' : 'Satellite'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapMode('topo')}
-            className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-              mapMode === 'topo'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            {isGr ? 'Μονοπάτια' : 'Trails'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapMode('gmaps')}
-            className={`px-2 py-0.5 rounded-md font-semibold transition-colors ${
-              mapMode === 'gmaps'
-                ? 'bg-blue-600 text-white'
-                : 'text-slate-300 hover:text-white'
-            }`}
-            data-testid="map-mode-gmaps-btn"
-          >
-            Google Maps
-          </button>
-        </div>
-      </div>
-
-      {/* Quick Sector Selector Strip */}
-      <div className="px-3 sm:px-4 py-1.5 bg-gray-50 border-b border-gray-200 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[11px] font-semibold text-gray-500 shrink-0">
-          {isGr ? 'Πεδίο:' : 'Sector:'}
-        </span>
-        {sectors.map((s) => {
-          const isSelected = s.key === activeSector.key;
-          return (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => handleFocusSectorPin(s)}
-              data-testid={`map-sector-pill-${s.key}`}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition-all ${
-                isSelected
-                  ? 'bg-[#1e3a8a] text-white shadow-2xs'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  s.key === 'kokkini' ? 'bg-amber-300' : 'bg-blue-300'
-                }`}
-              />
-              <span>{isGr ? s.nameGr : s.nameEn.split(' (')[0]}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Interactive Map Viewport (Leaflet OR Keyless Google Maps Embed) */}
-      <div
-        className={`relative w-full ${
-          compactHeight ? 'h-[260px] sm:h-[310px]' : 'h-[300px] sm:h-[380px]'
-        } bg-slate-900`}
-      >
-        {/* Leaflet Canvas (kept mounted so tile cache persists) */}
-        <div
-          ref={mapContainerRef}
-          data-testid="leaflet-map-canvas"
-          className={`w-full h-full z-10 ${
-            mapMode === 'gmaps' ? 'invisible pointer-events-none' : 'visible'
-          }`}
-        />
-
-        {/* Keyless Google Maps Embed iframe when 'gmaps' tab is active */}
-        {mapMode === 'gmaps' && (
-          <iframe
-            title={`Google Maps - ${activeSector.nameGr}`}
-            src={keylessEmbedUrl}
-            className="absolute inset-0 w-full h-full border-0 z-20"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            data-testid="google-maps-embed-iframe"
-          />
-        )}
-
-        {/* Map Legend Overlay (Bottom-Left) */}
-        {mapMode !== 'gmaps' && (
-          <div className="absolute bottom-2.5 left-2.5 z-[400] bg-slate-900/90 backdrop-blur-xs text-white px-2.5 py-1.5 rounded-lg border border-white/15 text-[11px] flex flex-wrap items-center gap-3 pointer-events-none">
-            <span className="inline-flex items-center gap-1">
-              <span className="px-1 py-0.2 bg-blue-700 text-white rounded text-[10px] font-black">
-                P
-              </span>
-              <span>{isGr ? 'Πάρκινγκ / Μπάρα' : 'Parking / Gate'}</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="w-4 border-t-2 border-dashed border-amber-400 inline-block" />
-              <span>{isGr ? 'Μονοπάτι (10′)' : 'Footpath (10′)'}</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-600 border border-yellow-300 inline-block" />
-              <span>{isGr ? 'Επιλεγμένο Πεδίο' : 'Selected Crag'}</span>
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Selected Sector Details & 1-Tap Google Maps Directions Bar */}
-      <div className="p-3.5 sm:p-4 bg-white border-t border-gray-200">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Selected Sector + Parking & Trailhead Explanation */}
-          <div className="space-y-1 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#1e3a8a]/10 text-[#1e3a8a]">
-                <MapPin className="w-3 h-3" />
-                {isGr ? activeSector.areaGr : activeSector.area}
-              </span>
-              <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                {isGr ? activeSector.nameGr : activeSector.nameEn}
-              </h3>
-              <span className="text-xs text-gray-500 font-medium inline-flex items-center gap-1">
-                <Mountain className="w-3.5 h-3.5 text-[#1e3a8a]" />
-                {activeSector.routes} {isGr ? 'διαδρομές' : 'routes'} ({activeSector.grades})
-              </span>
-              <span className="text-xs text-gray-500 font-medium inline-flex items-center gap-1">
-                <Footprints className="w-3.5 h-3.5 text-amber-600" />
-                {activeSector.approachMin}′ {isGr ? 'πεζοπορία' : 'walk'}
-              </span>
-            </div>
-
-            <p className="text-xs text-gray-600 leading-relaxed">
-              <strong className="text-gray-800">
-                🚗 {isGr ? activeParking.shortGr : activeParking.shortEn}:
-              </strong>{' '}
-              {isGr ? activeParking.noteGr : activeParking.noteEn}
-            </p>
-          </div>
-
-          {/* Right: 1-Tap Google Maps Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            {/* Primary Button: Driving Directions to Parking Gate */}
-            <a
-              href={drivingToParkingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="gmaps-directions-parking-btn"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-xs transition-colors"
-            >
-              <Car className="w-4 h-4 shrink-0" />
-              <span>
-                {isGr
-                  ? 'Οδηγίες στο Πάρκινγκ (Google Maps)'
-                  : 'Directions to Parking (Google Maps)'}
-              </span>
-              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-            </a>
-
-            {/* Secondary Button: Exact Crag Pin / Walking on Google Maps */}
-            <a
-              href={walkingToCragUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="gmaps-directions-crag-btn"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 transition-colors"
-              title={`${activeSector.lat}, ${activeSector.lng}`}
-            >
-              <Navigation className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-              <span>
-                {isGr ? 'Στίγμα Βράχου (Πεζοπορία)' : 'Crag Pin (Walking)'}
-              </span>
-              <ExternalLink className="w-3 h-3 opacity-75" />
-            </a>
-
-            {/* Wikiloc GPS Trail link if available */}
-            {activeParking.wikilocUrl && (
-              <a
-                href={activeParking.wikilocUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-colors"
-              >
-                <Footprints className="w-3.5 h-3.5 text-amber-700" />
-                <span>Wikiloc</span>
-                <ExternalLink className="w-3 h-3 opacity-70" />
-              </a>
-            )}
-
-            {/* Copy Coordinates Button */}
-            <button
-              type="button"
-              onClick={handleCopyCoords}
-              className="inline-flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-              title={isGr ? 'Αντιγραφή Συντεταγμένων GPS' : 'Copy GPS Coordinates'}
-            >
-              {copiedCoords ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 font-semibold">
-                    {isGr ? 'Αντιγράφηκε' : 'Copied'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="font-mono text-[11px]">
-                    {activeSector.lat.toFixed(4)}, {activeSector.lng.toFixed(4)}
-                  </span>
-                </>
-              )}
-            </button>
-
-            {/* Open Interactive Topo for any active sector */}
-            {(onOpenSector || onOpenKokkiniTopo) && (
+      {/* Floating Glass Buttons for each crag */}
+      <div className="absolute top-3 left-3 right-3 z-[400] pointer-events-none flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl backdrop-blur-md bg-white/70 border border-white/40 shadow-sm pointer-events-auto">
+          {sectors.map((s) => {
+            const isHovered = effectiveHoveredKey === s.key;
+            return (
               <button
+                key={s.key}
                 type="button"
-                onClick={() => {
-                  if (onOpenSector && activeSector.path) {
-                    onOpenSector(activeSector.path);
-                  } else if (onOpenKokkiniTopo) {
-                    onOpenKokkiniTopo();
-                  }
-                }}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold bg-[#1e3a8a] hover:bg-[#1e3a8a]/90 text-white shadow-xs transition-colors"
+                onClick={() => handleCragClick(s)}
+                onMouseEnter={() => setInternalHoveredKey(s.key)}
+                onMouseLeave={() => setInternalHoveredKey(null)}
+                data-testid={`glass-crag-btn-${s.key}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md transition-all border ${
+                  isHovered
+                    ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] shadow-xs scale-102'
+                    : 'bg-white/80 hover:bg-white text-gray-800 border-white/60 hover:shadow-2xs'
+                }`}
               >
-                <span>{isGr ? 'Άνοιγμα Topo' : 'Open Topo'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                {isGr ? s.nameGr : s.nameEn.split(' (')[0]}
               </button>
-            )}
-          </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Map Viewport */}
+      <div
+        ref={mapContainerRef}
+        data-testid="leaflet-map-canvas"
+        className="w-full h-full"
+      />
     </div>
   );
 }

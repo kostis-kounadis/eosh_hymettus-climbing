@@ -61,29 +61,20 @@ dialog::backdrop {
   backdrop-filter: blur(3px);
 }
 
-/* Custom Leaflet Tooltip & Popup Overrides for Hymettus Crag Area Map */
-.area-boundary-tooltip {
-  background: rgba(15, 23, 42, 0.88) !important;
+/* Custom Leaflet Tooltip for Crag Pins */
+.crag-map-tooltip {
+  background: rgba(15, 23, 42, 0.92) !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  border-radius: 9999px !important;
+  border-radius: 6px !important;
   color: #ffffff !important;
-  padding: 3px 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
 }
 
-.area-boundary-tooltip::before {
-  display: none !important;
-}
-
-.leaflet-popup-content-wrapper {
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
-  padding: 4px !important;
-}
-
-.leaflet-popup-content {
-  margin: 10px 12px !important;
-  line-height: 1.4 !important;
+.crag-map-tooltip::before {
+  border-top-color: rgba(15, 23, 42, 0.92) !important;
 }
 
 
