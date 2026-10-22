@@ -26,6 +26,8 @@ import {
   AlertTriangle,
   Ruler,
   Info,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -47,6 +49,11 @@ import {
   isCompletedTick,
 } from '../hooks/useClimberLogbook';
 import { getCragByKey } from '../data/cragsCatalog';
+import {
+  sectors,
+  PARKING_TRAILHEADS,
+  getGoogleMapsPinUrl,
+} from '../data/sectorsData';
 
 const INITIAL_FILTERS = {
   selectedGrades: [],
@@ -75,6 +82,43 @@ export default function KokkiniPistaPage({
   const walls = crag.walls || KOKKINI_WALLS;
   const setters = crag.setters;
   const years = crag.years;
+
+  const sectorMeta = useMemo(
+    () => sectors.find((s) => s.key === currentSectorKey) || sectors[0],
+    [currentSectorKey]
+  );
+  const parkingMeta = useMemo(
+    () => PARKING_TRAILHEADS[sectorMeta.parkingId] || PARKING_TRAILHEADS.ilioupoli,
+    [sectorMeta]
+  );
+
+  const [copiedParkingCoords, setCopiedParkingCoords] = useState(false);
+  const [copiedCragCoords, setCopiedCragCoords] = useState(false);
+
+  const handleCopyParking = async () => {
+    const text = `${parkingMeta.lat}, ${parkingMeta.lng}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedParkingCoords(true);
+      setTimeout(() => setCopiedParkingCoords(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleCopyCrag = async () => {
+    const text = `${sectorMeta.lat}, ${sectorMeta.lng}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCragCoords(true);
+      setTimeout(() => setCopiedCragCoords(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  const parkingGoogleUrl = getGoogleMapsPinUrl(parkingMeta.lat, parkingMeta.lng);
+  const cragGoogleUrl = getGoogleMapsPinUrl(sectorMeta.lat, sectorMeta.lng);
 
   // 3 Demonstration Views: 'guest' (Public) | 'member' (Logged-in) | 'admin' (Admin)
   const [userMode, setUserMode] = useState('guest');
@@ -497,7 +541,7 @@ export default function KokkiniPistaPage({
                 className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-[#1e3a8a] bg-[#1e3a8a]/5 hover:bg-[#1e3a8a]/10 border border-[#1e3a8a]/15 rounded-full px-2.5 py-1 transition-colors"
               >
                 <MapPin className="w-3 h-3" />
-                <span>{isGr ? `Πρόσβαση ${cragInfo.approachMinutes || 10}′ (Wikiloc)` : `Approach ${cragInfo.approachMinutes || 10}′ (Wikiloc)`}</span>
+                <span>{isGr ? `Πρόσβαση ${cragInfo.approachMinutes || 10}′` : `Approach ${cragInfo.approachMinutes || 10}′`}</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
@@ -829,50 +873,108 @@ export default function KokkiniPistaPage({
                       {isGr ? cragInfo.approachGr : cragInfo.approachEn}
                     </p>
 
-                    {/* Action Links: Parking Google Maps + Actual Crag Spot Google Maps + Temporary Wikiloc */}
-                    <div className="flex flex-col gap-1.5 pt-1">
-                      <a
-                        href={cragInfo.parkingMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-[#1e3a8a]/5 border border-gray-200 hover:border-[#1e3a8a]/30 text-gray-800 hover:text-[#1e3a8a] font-semibold transition-colors"
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-[#1e3a8a]" />
-                          {isGr
-                            ? 'Σημείο Στάθμευσης (Google Maps)'
-                            : 'Parking Spot (Google Maps)'}
-                        </span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                      </a>
+                    {/* Action Links: Parking GPS Button + Google Maps Link, Crag GPS Button + Google Maps Link, Trail */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      {/* Parking Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <Car className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                          <span className="font-semibold text-gray-800">
+                            {isGr ? 'Στάθμευση:' : 'Parking:'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyParking}
+                            title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                            data-testid="copy-parking-coords-btn"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                          >
+                            {copiedParkingCoords ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                  {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 text-gray-500" />
+                                <span>
+                                  {parkingMeta.lat.toFixed(3)}, {parkingMeta.lng.toFixed(3)}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
 
-                      <a
-                        href={cragInfo.cragMapsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 hover:bg-[#1e3a8a]/5 border border-gray-200 hover:border-[#1e3a8a]/30 text-gray-800 hover:text-[#1e3a8a] font-semibold transition-colors"
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          <Mountain className="w-3.5 h-3.5 text-[#1e3a8a]" />
-                          {isGr
-                            ? `Σημείο Πεδίου — ${crag.nameGr || 'Κόκκινη Πίστα'} (Google Maps)`
-                            : `Actual Crag Spot — ${crag.nameEn || 'Kokkini Pista'} (Google Maps)`}
-                        </span>
-                        <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                      </a>
+                        <a
+                          href={parkingGoogleUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="parking-gmaps-link"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                        >
+                          <span>Google Maps</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      </div>
 
+                      {/* Actual Crag Coordinates Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <Mountain className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                          <span className="font-semibold text-gray-800">
+                            {isGr ? 'Βράχος:' : 'Crag:'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyCrag}
+                            title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                            data-testid="copy-crag-coords-btn"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                          >
+                            {copiedCragCoords ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                  {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 text-gray-500" />
+                                <span>
+                                  {sectorMeta.lat.toFixed(3)}, {sectorMeta.lng.toFixed(3)}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <a
+                          href={cragGoogleUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="crag-gmaps-link"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                        >
+                          <span>Google Maps</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      </div>
+
+                      {/* Monopati Line (No mention of Wikiloc) */}
                       {cragInfo.wikilocUrl && (
                         <a
                           href={cragInfo.wikilocUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-amber-50/60 hover:bg-amber-100/60 border border-dashed border-amber-300 text-amber-900 font-semibold transition-colors"
+                          data-testid="crag-trail-link"
+                          className="inline-flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 hover:bg-[#1e3a8a]/5 border border-gray-200 hover:border-[#1e3a8a]/30 text-gray-800 hover:text-[#1e3a8a] font-semibold transition-colors"
                         >
                           <span className="inline-flex items-center gap-1.5">
                             <Footprints className="w-3.5 h-3.5 text-amber-700" />
-                            {isGr
-                              ? 'Μονοπάτι στο Wikiloc'
-                              : 'Wikiloc Trail'}
+                            {isGr ? 'Μονοπάτι' : 'Trail'}
                           </span>
                           <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                         </a>
