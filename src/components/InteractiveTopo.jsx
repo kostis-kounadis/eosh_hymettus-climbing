@@ -80,8 +80,10 @@ export default function InteractiveTopo({
   onToggleExpandedSize,
   onResetFilters,
   walls = KOKKINI_WALLS,
+  canCollapse = true,
 }) {
   const [isOpen, setIsOpen] = useState(true);
+  const effectiveIsOpen = canCollapse ? isOpen : true;
   const [internalExpanded, setInternalExpanded] = useState(false);
   const isExpandedSize =
     controlledExpandedSize !== undefined ? controlledExpandedSize : internalExpanded;
@@ -89,6 +91,7 @@ export default function InteractiveTopo({
   const effectiveWalls = walls && walls.length > 0 ? walls : KOKKINI_WALLS;
 
   const handleToggleOpen = () => {
+    if (!canCollapse) return;
     setIsOpen((prev) => {
       const next = !prev;
       if (!next) {
@@ -387,7 +390,7 @@ export default function InteractiveTopo({
   // Native non-passive Wheel + Trackpad Pinch/Pan listener on the viewport box
   useEffect(() => {
     const vp = viewportRef.current;
-    if (!vp || !isOpen) return;
+    if (!vp || !effectiveIsOpen) return;
 
     const onWheel = (e) => {
       const rect = vp.getBoundingClientRect();
@@ -444,7 +447,7 @@ export default function InteractiveTopo({
       vp.removeEventListener('gesturestart', onGestureStart);
       vp.removeEventListener('gesturechange', onGestureChange);
     };
-  }, [isOpen, applyZoomAtPoint, clampPan]);
+  }, [effectiveIsOpen, applyZoomAtPoint, clampPan]);
 
   // Touch Pinch-to-Zoom & 2-Finger Pan on Mobile
   const handleTouchStart = (e) => {
@@ -677,7 +680,7 @@ export default function InteractiveTopo({
     <div ref={stickyRef} className={isStuck ? 'is-stuck' : ''}>
       <div className="topo-sticky-inner bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm relative">
         {/* Collapsed Bar: strictly visible when topo is collapsed */}
-        {!isOpen && (
+        {!effectiveIsOpen && canCollapse && (
           <div className="p-2 sm:p-2.5 flex items-center">
             <button
               type="button"
@@ -692,7 +695,7 @@ export default function InteractiveTopo({
         )}
 
         {/* Admin Topo Editor Toolbar (Only visible in Admin Mode when Edit Topo is active) */}
-        {isOpen && isAdmin && editMode && (
+        {effectiveIsOpen && isAdmin && editMode && (
           <div className="px-3 py-1.5 bg-emerald-950 text-emerald-100 text-xs flex flex-wrap items-center justify-between gap-2 border-b border-emerald-800">
             <div className="flex items-center gap-2">
               <Badge className="bg-emerald-400 text-gray-950 font-bold">
@@ -773,7 +776,7 @@ export default function InteractiveTopo({
         )}
 
         {/* Collapsible Photo + 1:1 Native Aspect-Ratio SVG Topo Canvas */}
-        {isOpen && (
+        {effectiveIsOpen && (
           <div className="bg-neutral-900 select-none">
             {/* Fixed-size outer viewport box: ONLY resized by isExpandedSize (Μεγάλο), NEVER by zoomLevel */}
             <div
@@ -1061,15 +1064,17 @@ export default function InteractiveTopo({
               {/* 3.A Topo Toolbar (Floating Transparent Overlay directly above photo) */}
               <div className="absolute top-2 left-2 right-2 sm:top-2.5 sm:left-2.5 sm:right-2.5 z-20 flex items-center justify-between gap-1.5 pointer-events-none">
                 {/* Element 1: Collapsible button ("Πανοραμικό" in GR / "Topo" in EN) */}
-                <button
-                  type="button"
-                  onClick={handleToggleOpen}
-                  className="h-7 px-2.5 inline-flex items-center gap-1 font-semibold text-xs bg-black/45 hover:bg-black/60 text-white border border-white/20 backdrop-blur-md rounded-lg transition-colors shadow-xs pointer-events-auto"
-                  aria-expanded={true}
-                >
-                  <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
-                </button>
+                {canCollapse && (
+                  <button
+                    type="button"
+                    onClick={handleToggleOpen}
+                    className="h-7 px-2.5 inline-flex items-center gap-1 font-semibold text-xs bg-black/45 hover:bg-black/60 text-white border border-white/20 backdrop-blur-md rounded-lg transition-colors shadow-xs pointer-events-auto"
+                    aria-expanded={true}
+                  >
+                    <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{isGr ? 'Πανοραμικό' : 'Topo'}</span>
+                  </button>
+                )}
 
                 {/* Element 2: Wall Tabs Switcher (Aligned right on mobile, centered/left on desktop) */}
                 {effectiveWalls.length > 1 && (

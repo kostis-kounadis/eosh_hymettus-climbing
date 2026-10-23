@@ -135,6 +135,17 @@ export default function KokkiniPistaPage({
   const stickyHeaderRefA = useRef(null);
   const [stickyTopOffsetA, setStickyTopOffsetA] = useState(0);
 
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
+  const [mobileInfoOpen, setMobileInfoOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Reset wall & route selection when switching sectors
   useEffect(() => {
     setActiveWall(1);
@@ -167,7 +178,7 @@ export default function KokkiniPistaPage({
       roB?.disconnect();
       roA?.disconnect();
     };
-  }, [filters]);
+  }, [filters, isDesktop, mobileInfoOpen]);
 
   // Live Side-by-Side Layout Switcher (Default Layout B, or ?layout=a)
   const layoutVariant = searchParams.get('layout') === 'a' ? 'a' : 'b';
@@ -1153,49 +1164,128 @@ export default function KokkiniPistaPage({
               </h1>
             </div>
 
-            <div
-              className="lg:grid lg:grid-cols-12 lg:gap-5 lg:items-start"
-              style={{ overflowAnchor: 'none' }}
-            >
-              {/* Column 1: Topo + Selected Route Detail Panel */}
+            {isDesktop ? (
+              /* ============================================================================
+                 DESKTOP LAYOUT A (2 columns side-by-side, No Hide Topo button)
+                 ============================================================================ */
               <div
-                data-testid="topo-sticky-wrapper"
-                className={`topo-sticky-container mb-3 lg:mb-0 space-y-3 ${
-                  isExpandedSize
-                    ? 'lg:col-span-12 topo-expanded-desktop lg:mb-4'
-                    : 'lg:col-span-5 xl:col-span-5 topo-split-desktop'
-                }`}
+                className="lg:grid lg:grid-cols-12 lg:gap-5 lg:items-start"
+                style={{ overflowAnchor: 'none' }}
               >
-                <InteractiveTopo
-                  isGr={isGr}
-                  userMode={userMode}
-                  routes={routes}
-                  filteredRouteIds={filteredRouteIds}
-                  selectedRoute={selectedRoute}
-                  onSelectRoute={handleSelectRoute}
-                  activeWall={activeWall}
-                  onChangeWall={setActiveWall}
-                  walls={walls}
-                  gradeSystem="french"
-                  getEntry={getEntry}
-                  customPaths={customPaths}
-                  onUpdateRoutePath={updateRoutePath}
-                  onResetRoutePath={resetRoutePath}
-                  onToggleFavourite={toggleFavourite}
-                  onToggleTickStatus={toggleTickStatus}
-                  isExpandedSize={isExpandedSize}
-                  onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
-                  onResetFilters={handleResetAllFilters}
-                />
-
-                {/* Spacious Route Details Panel below Topo (Hidden on mobile where table expands inline) */}
-                <div className="hidden lg:block">
-                  <SelectedRouteDetailPanel
-                    route={selectedRoute}
+                {/* Column 1: Topo + Selected Route Detail Panel */}
+                <div
+                  data-testid="topo-sticky-wrapper"
+                  className={`topo-sticky-container mb-3 lg:mb-0 space-y-3 ${
+                    isExpandedSize
+                      ? 'lg:col-span-12 topo-expanded-desktop lg:mb-4'
+                      : 'lg:col-span-5 xl:col-span-5 topo-split-desktop'
+                  }`}
+                >
+                  <InteractiveTopo
                     isGr={isGr}
                     userMode={userMode}
+                    routes={routes}
+                    filteredRouteIds={filteredRouteIds}
+                    selectedRoute={selectedRoute}
+                    onSelectRoute={handleSelectRoute}
+                    activeWall={activeWall}
+                    onChangeWall={setActiveWall}
+                    walls={walls}
+                    gradeSystem="french"
                     getEntry={getEntry}
-                    onClose={() => handleSelectRoute(null)}
+                    customPaths={customPaths}
+                    onUpdateRoutePath={updateRoutePath}
+                    onResetRoutePath={resetRoutePath}
+                    onToggleFavourite={toggleFavourite}
+                    onToggleTickStatus={toggleTickStatus}
+                    isExpandedSize={isExpandedSize}
+                    onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
+                    onResetFilters={handleResetAllFilters}
+                    canCollapse={false}
+                  />
+
+                  {/* Spacious Route Details Panel below Topo */}
+                  <div className="hidden lg:block">
+                    <SelectedRouteDetailPanel
+                      route={selectedRoute}
+                      isGr={isGr}
+                      userMode={userMode}
+                      getEntry={getEntry}
+                      onClose={() => handleSelectRoute(null)}
+                      onToggleFavourite={toggleFavourite}
+                      onToggleTickStatus={toggleTickStatus}
+                      onUpdateEntry={updateEntry}
+                      onFilterBySetter={(setter) =>
+                        setFilters((p) => ({
+                          ...p,
+                          setter: p.setter === setter ? 'all' : setter,
+                        }))
+                      }
+                      onFilterByYear={(year) =>
+                        setFilters((p) => ({
+                          ...p,
+                          year: p.year === year ? 'all' : year,
+                        }))
+                      }
+                      cragInfo={cragInfo}
+                      routes={routes}
+                    />
+                  </div>
+                </div>
+
+                {/* Column 2: Grade Histogram & Crag Stats -> Sticky [Filter Bar + Table] */}
+                <div
+                  className={`min-w-0 ${
+                    isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-7 xl:col-span-7'
+                  }`}
+                >
+                  {/* 1. Grade Histogram & Crag Stats (Balanced 6 / 6 cols on xl) */}
+                  <GradeChartAndStats
+                    isGr={isGr}
+                    userMode={userMode}
+                    routes={routes}
+                    gradeSystem="french"
+                    selectedGrades={filters.selectedGrades}
+                    onToggleGrade={handleToggleGrade}
+                    onSelectGradeTier={handleSelectGradeTier}
+                    onClearGrades={() =>
+                      setFilters((p) => ({ ...p, selectedGrades: [] }))
+                    }
+                    getEntry={getEntry}
+                    onOpenLogbookModal={() => setLogbookModalOpen(true)}
+                    cragInfo={cragInfo}
+                  />
+
+                  {/* 2. Sticky Filter Bar directly docked to Table */}
+                  <div
+                    ref={stickyHeaderRefA}
+                    className="sticky top-0 z-30 bg-gray-50 pt-2 pb-0 mt-3"
+                  >
+                    <RouteFilterBar
+                      isGr={isGr}
+                      userMode={userMode}
+                      filters={filters}
+                      onChangeFilters={setFilters}
+                      onResetAllFilters={() => setFilters(INITIAL_FILTERS)}
+                      onSelectGradeTier={handleSelectGradeTier}
+                      activeFilterCount={activeFilterCount}
+                      totalCount={routes.length}
+                      filteredCount={filteredRoutes.length}
+                      isDockedWithTable={true}
+                      setters={setters}
+                      years={years}
+                    />
+                  </div>
+
+                  {/* 3. Route Table docked with Filter Bar */}
+                  <RouteListAndTable
+                    stickyTopOffset={stickyTopOffsetA}
+                    isGr={isGr}
+                    userMode={userMode}
+                    routes={filteredRoutes}
+                    selectedRoute={selectedRoute}
+                    onSelectRoute={handleSelectRoute}
+                    getEntry={getEntry}
                     onToggleFavourite={toggleFavourite}
                     onToggleTickStatus={toggleTickStatus}
                     onUpdateEntry={updateEntry}
@@ -1211,40 +1301,337 @@ export default function KokkiniPistaPage({
                         year: p.year === year ? 'all' : year,
                       }))
                     }
+                    isDockedWithFilterBar={true}
+                    disableRowAccordionOnDesktop={true}
                     cragInfo={cragInfo}
-                    routes={routes}
                   />
                 </div>
               </div>
+            ) : (
+              /* ============================================================================
+                 MOBILE LAYOUT A (< 1024px)
+                 ============================================================================ */
+              <div className="space-y-2.5">
+                {/* 1. Single Dropdown with all info (initially collapsed, no inner dropdowns) */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMobileInfoOpen((v) => !v)}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-gray-50/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-[#1e3a8a]" />
+                      <span className="text-xs sm:text-sm font-bold text-gray-900">
+                        {isGr
+                          ? 'Πληροφορίες Πεδίου, Σκιά, Πρόσβαση & Γράφημα'
+                          : 'Crag Info, Shade, Approach & Chart'}
+                      </span>
+                    </div>
+                    {mobileInfoOpen ? (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    )}
+                  </button>
 
-              {/* Column 2: Grade Histogram & Crag Stats -> Sticky [Filter Bar + Table] */}
-              <div
-                className={`min-w-0 ${
-                  isExpandedSize ? 'lg:col-span-12' : 'lg:col-span-7 xl:col-span-7'
-                }`}
-              >
-                {/* 1. Grade Histogram & Crag Stats (Balanced 6 / 6 cols on xl) */}
-                <GradeChartAndStats
-                  isGr={isGr}
-                  userMode={userMode}
-                  routes={routes}
-                  gradeSystem="french"
-                  selectedGrades={filters.selectedGrades}
-                  onToggleGrade={handleToggleGrade}
-                  onSelectGradeTier={handleSelectGradeTier}
-                  onClearGrades={() =>
-                    setFilters((p) => ({ ...p, selectedGrades: [] }))
-                  }
-                  getEntry={getEntry}
-                  onOpenLogbookModal={() => setLogbookModalOpen(true)}
-                  cragInfo={cragInfo}
-                />
+                  {mobileInfoOpen && (
+                    <div className="px-3.5 pb-3.5 pt-2 border-t border-gray-100 space-y-3 text-xs text-gray-700">
+                      {/* Crag Intro Description */}
+                      {(cragInfo.introGr || cragInfo.introEn) && (
+                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium pb-2 border-b border-gray-100">
+                          {isGr ? cragInfo.introGr : cragInfo.introEn}
+                        </p>
+                      )}
 
-                {/* 2. Sticky Filter Bar directly docked to Table */}
+                      {/* Quick Specs & Seasonal Shade */}
+                      <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-2.5 space-y-2">
+                        <div className="grid grid-cols-5 divide-x divide-gray-200 rounded-lg bg-white border border-gray-200/80 py-1.5 px-0.5 shadow-2xs">
+                          <div className="px-1 flex flex-col items-center justify-center text-center min-w-0">
+                            <span className="text-[10px] font-medium text-gray-500 whitespace-nowrap leading-tight">
+                              {isGr ? 'Εύρος' : 'Grades'}
+                            </span>
+                            <span className="text-xs font-extrabold text-gray-900 whitespace-nowrap mt-0.5 leading-tight">
+                              {cragInfo.gradeSpan || '5a–7a'}
+                            </span>
+                          </div>
+                          <div className="px-1 flex flex-col items-center justify-center text-center min-w-0">
+                            <span className="text-[10px] font-medium text-gray-500 whitespace-nowrap leading-tight">
+                              Sport
+                            </span>
+                            <span className="text-xs font-extrabold text-gray-900 whitespace-nowrap mt-0.5 leading-tight">
+                              {cragCounts.sport}
+                            </span>
+                          </div>
+                          <div className="px-1 flex flex-col items-center justify-center text-center min-w-0">
+                            <span className="text-[10px] font-medium text-gray-500 whitespace-nowrap leading-tight">
+                              Top Rope
+                            </span>
+                            <span className="text-xs font-extrabold text-gray-900 whitespace-nowrap mt-0.5 leading-tight">
+                              {cragCounts.topRope}
+                            </span>
+                          </div>
+                          <div className="px-1 flex flex-col items-center justify-center text-center min-w-0">
+                            <span className="text-[10px] font-medium text-gray-500 whitespace-nowrap leading-tight">
+                              {isGr ? 'Ύψος' : 'Height'}
+                            </span>
+                            <span className="text-xs font-extrabold text-gray-900 whitespace-nowrap mt-0.5 leading-tight">
+                              {cragInfo.height || '5–15m'}
+                            </span>
+                          </div>
+                          <div className="px-1 flex flex-col items-center justify-center text-center min-w-0">
+                            <span className="text-[10px] font-medium text-gray-500 whitespace-nowrap leading-tight">
+                              {isGr ? 'Σετάκια' : 'Draws'}
+                            </span>
+                            <span className="text-xs font-extrabold text-gray-900 whitespace-nowrap mt-0.5 leading-tight">
+                              {cragInfo.quickdraws || '≤ 9+2'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`rounded-lg border px-2.5 py-1.5 flex items-center gap-2 ${
+                            sunStatus.state === 'shade'
+                              ? 'bg-sky-50/60 border-sky-200/80 text-sky-950'
+                              : 'bg-amber-50/60 border-amber-200/80 text-amber-950'
+                          }`}
+                        >
+                          <Sun
+                            className={`w-3.5 h-3.5 shrink-0 ${
+                              sunStatus.state === 'shade' ? 'text-sky-600' : 'text-amber-500'
+                            }`}
+                          />
+                          <div className="text-[11px] leading-snug min-w-0">
+                            <span className="font-bold">
+                              {isGr ? 'Σκιά: ' : 'Shade: '}
+                            </span>
+                            <span>
+                              {isGr
+                                ? (cragInfo.shadeGr || 'Καλοκαίρι έως 10:00 & 11:00–βράδυ · Χειμώνας όλη μέρα')
+                                : (cragInfo.shadeEn || 'Summer <10:00 & 11:00–dusk · Winter all day')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mandatory Helmet Safety Warning */}
+                      <div className="text-[11px] text-gray-700 bg-amber-50/80 border border-amber-200/80 rounded-lg p-2 flex items-start gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <span>
+                          {isGr
+                            ? cragInfo?.key === 'kokkini' || cragInfo?.id === 'kokkini'
+                              ? 'Κράνος απαραίτητο! Οι 7 κίτρινες γραμμές (Top Rope*) δεν έχουν μόνιμο ρελέ (ρελέ σε δεντράκια ή καρύδια/friends).'
+                              : 'Χρήση κράνους απαραίτητη πάντα και παντού για αναρριχητές και ασφαλιστές!'
+                            : cragInfo?.key === 'kokkini' || cragInfo?.id === 'kokkini'
+                            ? 'Helmet mandatory! The 7 yellow lines (Top Rope*) have no permanent lower-off (rig on trees or nuts/friends).'
+                            : 'Wearing a helmet is mandatory at all times for both climbers and belayers!'}
+                        </span>
+                      </div>
+
+                      {/* Grade Distribution Histogram (Always open directly, no nested dropdown!) */}
+                      <GradeChartAndStats
+                        isGr={isGr}
+                        userMode={userMode}
+                        routes={routes}
+                        gradeSystem="french"
+                        selectedGrades={filters.selectedGrades}
+                        onToggleGrade={handleToggleGrade}
+                        onSelectGradeTier={handleSelectGradeTier}
+                        onClearGrades={() => setFilters((p) => ({ ...p, selectedGrades: [] }))}
+                        getEntry={getEntry}
+                        onOpenLogbookModal={() => setLogbookModalOpen(true)}
+                        cragInfo={cragInfo}
+                        histogramOnly={true}
+                        alwaysOpen={true}
+                      />
+
+                      {/* Approach (Πρόσβαση) */}
+                      <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-2 shadow-2xs">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <Compass className="w-4 h-4 text-[#1e3a8a]" />
+                          <span>
+                            {isGr
+                              ? `Πρόσβαση (${cragInfo.approachMinutes || 10} λεπτά)`
+                              : `Approach (${cragInfo.approachMinutes || 10} minutes)`}
+                          </span>
+                        </div>
+                        <p className="leading-relaxed text-gray-600 text-xs">
+                          {isGr ? cragInfo.approachGr : cragInfo.approachEn}
+                        </p>
+
+                        <div className="flex flex-col gap-1.5 pt-1">
+                          {/* Parking Row */}
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                            <div className="flex items-center gap-1.5">
+                              <Car className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                              <span className="font-semibold text-gray-800 text-[11px]">
+                                {isGr ? 'Στάθμευση:' : 'Parking:'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleCopyParking}
+                                title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                              >
+                                {copiedParkingCoords ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                      {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3 text-gray-500" />
+                                    <span>
+                                      {parkingMeta.lat.toFixed(3)}, {parkingMeta.lng.toFixed(3)}
+                                    </span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <a
+                              href={parkingGoogleUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                            >
+                              <span>Google Maps</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          </div>
+
+                          {/* Crag Row */}
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 p-2 rounded-lg bg-gray-50 border border-gray-200">
+                            <div className="flex items-center gap-1.5">
+                              <Mountain className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                              <span className="font-semibold text-gray-800 text-[11px]">
+                                {isGr ? 'Βράχος:' : 'Crag:'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleCopyCrag}
+                                title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                              >
+                                {copiedCragCoords ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                      {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3 text-gray-500" />
+                                    <span>
+                                      {sectorMeta.lat.toFixed(3)}, {sectorMeta.lng.toFixed(3)}
+                                    </span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <a
+                              href={cragGoogleUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                            >
+                              <span>Google Maps</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+                          </div>
+
+                          {/* Trail */}
+                          {cragInfo.wikilocUrl && (
+                            <a
+                              href={cragInfo.wikilocUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50 hover:bg-[#1e3a8a]/5 border border-gray-200 text-gray-800 hover:text-[#1e3a8a] font-semibold text-[11px] transition-colors"
+                            >
+                              <span className="inline-flex items-center gap-1.5">
+                                <Footprints className="w-3.5 h-3.5 text-amber-700" />
+                                {isGr ? 'Μονοπάτι' : 'Trail'}
+                              </span>
+                              <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rock Character & Safety */}
+                      <div className="space-y-1 p-2.5 rounded-xl bg-white border border-gray-200">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <ShieldAlert className="w-4 h-4 text-amber-600" />
+                          <span>
+                            {isGr ? 'Χαρακτήρας Βράχου & Ασφάλεια' : 'Rock Character & Safety'}
+                          </span>
+                        </div>
+                        <p className="leading-relaxed text-gray-600 text-[11px]">
+                          {isGr ? cragInfo.rockAndSafetyGr : cragInfo.rockAndSafetyEn}
+                        </p>
+                      </div>
+
+                      {/* Rebolting & Restoration */}
+                      <div className="space-y-1 p-2.5 rounded-xl bg-white border border-gray-200">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <Wrench className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                          <span>
+                            {isGr ? 'Ανακατασκευή & Συντήρηση' : 'Rebolting & Restoration'}
+                          </span>
+                        </div>
+                        <p className="leading-relaxed text-[11px] text-gray-600">
+                          {isGr ? cragInfo.reboltingGr : cragInfo.reboltingEn}
+                        </p>
+                      </div>
+
+                      {/* Historical Guidebooks */}
+                      <div className="space-y-1 p-2.5 rounded-xl bg-white border border-gray-200">
+                        <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                          <span>
+                            {isGr ? 'Ιστορικοί Οδηγοί' : 'Historical Guidebooks'}
+                          </span>
+                        </div>
+                        <p className="leading-relaxed text-[11px] text-gray-600">
+                          {isGr ? cragInfo.guidebooksGr : cragInfo.guidebooksEn}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Sticky Header: Topo + Filter Bar together */}
                 <div
                   ref={stickyHeaderRefA}
-                  className="sticky top-0 z-30 bg-gray-50 pt-2 pb-0 mt-3"
+                  className="sticky top-0 z-30 bg-gray-50 pt-1 pb-0 space-y-2"
                 >
+                  <div data-testid="topo-sticky-wrapper" className="w-full">
+                    <InteractiveTopo
+                      isGr={isGr}
+                      userMode={userMode}
+                      routes={routes}
+                      filteredRouteIds={filteredRouteIds}
+                      selectedRoute={selectedRoute}
+                      onSelectRoute={handleSelectRoute}
+                      activeWall={activeWall}
+                      onChangeWall={setActiveWall}
+                      walls={walls}
+                      gradeSystem="french"
+                      getEntry={getEntry}
+                      customPaths={customPaths}
+                      onUpdateRoutePath={updateRoutePath}
+                      onResetRoutePath={resetRoutePath}
+                      onToggleFavourite={toggleFavourite}
+                      onToggleTickStatus={toggleTickStatus}
+                      isExpandedSize={isExpandedSize}
+                      onToggleExpandedSize={() => setIsExpandedSize((v) => !v)}
+                      onResetFilters={handleResetAllFilters}
+                    />
+                  </div>
+
                   <RouteFilterBar
                     isGr={isGr}
                     userMode={userMode}
@@ -1261,7 +1648,7 @@ export default function KokkiniPistaPage({
                   />
                 </div>
 
-                {/* 3. Route Table docked with Filter Bar */}
+                {/* 3. Route List and Table */}
                 <RouteListAndTable
                   stickyTopOffset={stickyTopOffsetA}
                   isGr={isGr}
@@ -1286,11 +1673,10 @@ export default function KokkiniPistaPage({
                     }))
                   }
                   isDockedWithFilterBar={true}
-                  disableRowAccordionOnDesktop={true}
                   cragInfo={cragInfo}
                 />
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

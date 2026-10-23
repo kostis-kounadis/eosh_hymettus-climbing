@@ -68,6 +68,9 @@ export default function HymettusMapCanvas({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
+  const activeTappedKeyRef = useRef(null);
+  const onOpenSectorRef = useRef(onOpenSector);
+  onOpenSectorRef.current = onOpenSector;
 
   const [internalHoveredKey, setInternalHoveredKey] = useState(null);
 
@@ -133,13 +136,56 @@ export default function HymettusMapCanvas({
         className: 'crag-map-tooltip',
       });
 
-      marker.on('click', () => {
-        if (onOpenSector && s.path) {
-          onOpenSector(s.path);
+      marker.on('mouseover', () => {
+        const isMobile =
+          typeof window !== 'undefined' &&
+          (window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024));
+        if (!isMobile) {
+          setInternalHoveredKey(s.key);
+        }
+      });
+
+      marker.on('mouseout', () => {
+        const isMobile =
+          typeof window !== 'undefined' &&
+          (window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024));
+        if (!isMobile) {
+          setInternalHoveredKey(null);
+        }
+      });
+
+      // Mobile view: 1st touch shows name, 2nd touch navigates
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        const isMobile =
+          typeof window !== 'undefined' &&
+          (window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024));
+
+        if (isMobile) {
+          if (activeTappedKeyRef.current === s.key) {
+            // Second touch on the active pin -> navigate to crag page
+            if (onOpenSectorRef.current && s.path) {
+              onOpenSectorRef.current(s.path);
+            }
+          } else {
+            // First touch -> highlight pin and show its name tooltip
+            activeTappedKeyRef.current = s.key;
+            setInternalHoveredKey(s.key);
+          }
+        } else {
+          // Desktop click -> navigate directly
+          if (onOpenSectorRef.current && s.path) {
+            onOpenSectorRef.current(s.path);
+          }
         }
       });
 
       markersRef.current[s.key] = marker;
+    });
+
+    map.on('click', () => {
+      activeTappedKeyRef.current = null;
+      setInternalHoveredKey(null);
     });
 
     mapInstanceRef.current = map;
@@ -157,12 +203,14 @@ export default function HymettusMapCanvas({
 
   // Update tooltips and pin highlight when hovered (via glass button, pin, or card below)
   useEffect(() => {
+    activeTappedKeyRef.current = effectiveHoveredKey;
     sectors.forEach((s) => {
       const marker = markersRef.current[s.key];
       if (!marker) return;
 
       const isHovered = effectiveHoveredKey === s.key;
       marker.setIcon(createPinIcon(isHovered));
+      marker.setTooltipContent(isGr ? s.nameGr : s.nameEn);
 
       if (isHovered) {
         marker.setZIndexOffset(1000);

@@ -149,6 +149,7 @@ export default function GradeChartAndStats({
   getEntry,
   onOpenLogbookModal,
   histogramOnly = false,
+  alwaysOpen = false,
   cragInfo = CRAG_INFO_2018,
 }) {
   // Compact on mobile: collapsed by default on small viewports (<768px), open on desktop
@@ -478,6 +479,62 @@ export default function GradeChartAndStats({
   );
 
   if (histogramOnly) {
+    if (alwaysOpen) {
+      return (
+        <Card className="border border-gray-200 bg-white overflow-hidden shadow-2xs">
+          <CardContent className="p-3 sm:p-3.5 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <BarChart3 className="w-4 h-4 text-[#1e3a8a] flex-shrink-0" />
+              <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                {isGr ? 'Κατανομή Βαθμολογιών' : 'Grade Distribution'}
+              </h3>
+            </div>
+
+            {/* 4-Band Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1 mb-2">
+              {GRADE_BANDS.map((band) => {
+                const count = bandCounts[band.id] || 0;
+                const disabled = count === 0;
+                return (
+                  <button
+                    key={band.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onSelectGradeTier(band.id)}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-opacity ${
+                      band.bgSolid
+                    } ${
+                      disabled
+                        ? 'opacity-35 cursor-not-allowed'
+                        : 'hover:opacity-90 cursor-pointer'
+                    }`}
+                    title={`${isGr ? band.nameGr : band.nameEn}: ${
+                      gradeSystem === 'uiaa' ? band.labelUiaa : band.labelFr
+                    }`}
+                  >
+                    {gradeSystem === 'uiaa' ? band.labelUiaa : band.labelFr} ({count})
+                  </button>
+                );
+              })}
+              {selectedGrades.length > 0 && (
+                <button
+                  type="button"
+                  onClick={onClearGrades}
+                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  {isGr ? 'Όλες' : 'Reset'}
+                </button>
+              )}
+            </div>
+
+            {/* Connected Grade Columns: Bars + Labels together */}
+            {renderGradeColumns(true)}
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card className="border border-gray-200 bg-white overflow-hidden shadow-2xs">
         <button
