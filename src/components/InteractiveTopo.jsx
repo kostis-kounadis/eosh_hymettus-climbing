@@ -387,7 +387,7 @@ export default function InteractiveTopo({
     return () => observer.disconnect();
   }, []);
 
-  // Native non-passive Wheel + Trackpad Pinch/Pan listener on the viewport box
+  // Native non-passive Wheel + Trackpad + Touch Pinch/Pan listener on the viewport box
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp || !effectiveIsOpen) return;
@@ -433,82 +433,93 @@ export default function InteractiveTopo({
     };
     const onGestureChange = (e) => {
       e.preventDefault();
+      if (pinchStateRef.current) return;
       const rect = vp.getBoundingClientRect();
       const fx = (e.clientX || rect.left + rect.width / 2) - rect.left;
       const fy = (e.clientY || rect.top + rect.height / 2) - rect.top;
       applyZoomAtPoint(safariGestureStartScaleRef.current * e.scale, fx, fy);
     };
 
+    // Native non-passive Touch Pinch-to-Zoom & Pan on Mobile (prevents browser whole-page zoom)
+    const onTouchStart = (e) => {
+      if (e.touches.length >= 2) {
+        e.preventDefault();
+        dragStartRef.current = null;
+        setIsPanning(false);
+        const rect = vp.getBoundingClientRect();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        pinchStateRef.current = {
+          startDist: Math.max(10, dist),
+          startScale: zoomRef.current,
+          startPan: { ...panRef.current },
+          startMidX: midX,
+          startMidY: midY,
+        };
+        pointerMovedDistRef.current = 99; // suppress tap selection after pinch
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length >= 2) {
+        e.preventDefault(); // CRITICAL: stops native browser viewport zooming
+        if (!pinchStateRef.current) return;
+        const rect = vp.getBoundingClientRect();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+
+        const { startDist, startScale, startPan, startMidX, startMidY } =
+          pinchStateRef.current;
+        const minZ = getMinZoom();
+        const nextScale = clamp(
+          Number((startScale * (dist / startDist)).toFixed(3)),
+          minZ,
+          MAX_ZOOM
+        );
+
+        // Content point that was under startMid at start of pinch
+        const contentX = (startMidX - startPan.x) / startScale;
+        const contentY = (startMidY - startPan.y) / startScale;
+
+        // Place that content point under current midX, midY
+        const rawX = midX - contentX * nextScale;
+        const rawY = midY - contentY * nextScale;
+
+        setZoomLevel(nextScale);
+        setPan(clampPan(rawX, rawY, nextScale));
+      }
+    };
+
+    const onTouchEnd = (e) => {
+      if (e.touches.length < 2) {
+        pinchStateRef.current = null;
+      }
+    };
+
     vp.addEventListener('wheel', onWheel, { passive: false });
     vp.addEventListener('gesturestart', onGestureStart, { passive: false });
     vp.addEventListener('gesturechange', onGestureChange, { passive: false });
+    vp.addEventListener('touchstart', onTouchStart, { passive: false });
+    vp.addEventListener('touchmove', onTouchMove, { passive: false });
+    vp.addEventListener('touchend', onTouchEnd);
+    vp.addEventListener('touchcancel', onTouchEnd);
+
     return () => {
       vp.removeEventListener('wheel', onWheel);
       vp.removeEventListener('gesturestart', onGestureStart);
       vp.removeEventListener('gesturechange', onGestureChange);
+      vp.removeEventListener('touchstart', onTouchStart);
+      vp.removeEventListener('touchmove', onTouchMove);
+      vp.removeEventListener('touchend', onTouchEnd);
+      vp.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [effectiveIsOpen, applyZoomAtPoint, clampPan]);
-
-  // Touch Pinch-to-Zoom & 2-Finger Pan on Mobile
-  const handleTouchStart = (e) => {
-    if (e.touches.length === 2) {
-      const vp = viewportRef.current;
-      if (!vp) return;
-      const rect = vp.getBoundingClientRect();
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
-      const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
-      pinchStateRef.current = {
-        startDist: Math.max(10, dist),
-        startScale: zoomRef.current,
-        startPan: { ...panRef.current },
-        startMidX: midX,
-        startMidY: midY,
-      };
-      pointerMovedDistRef.current = 99; // suppress tap selection after pinch
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    if (e.touches.length === 2 && pinchStateRef.current) {
-      const vp = viewportRef.current;
-      if (!vp) return;
-      const rect = vp.getBoundingClientRect();
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
-      const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
-
-      const { startDist, startScale, startPan, startMidX, startMidY } =
-        pinchStateRef.current;
-      const minZ = getMinZoom();
-      const nextScale = clamp(
-        Number((startScale * (dist / startDist)).toFixed(3)),
-        minZ,
-        MAX_ZOOM
-      );
-
-      // Content point that was under startMid at start of pinch
-      const contentX = (startMidX - startPan.x) / startScale;
-      const contentY = (startMidY - startPan.y) / startScale;
-
-      // Place that content point under current midX, midY
-      const rawX = midX - contentX * nextScale;
-      const rawY = midY - contentY * nextScale;
-
-      setZoomLevel(nextScale);
-      setPan(clampPan(rawX, rawY, nextScale));
-    }
-  };
-
-  const handleTouchEnd = (e) => {
-    if (e.touches.length < 2) {
-      pinchStateRef.current = null;
-    }
-  };
+  }, [effectiveIsOpen, applyZoomAtPoint, clampPan, getMinZoom]);
 
   // Pointer Down/Move/Up for: (A) Admin Waypoint Dragging OR (B) 1-finger / Mouse Drag Panning when content is pannable
   const handleViewportPointerDown = (e) => {
@@ -787,9 +798,6 @@ export default function InteractiveTopo({
               onPointerUp={handleViewportPointerUp}
               onPointerCancel={handleViewportPointerUp}
               onPointerLeave={handleViewportPointerUp}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
               onDoubleClick={handleDoubleClick}
               className={`relative mx-auto overflow-hidden transition-[height] duration-300 ${
                 isExpandedSize
@@ -813,7 +821,7 @@ export default function InteractiveTopo({
                     ? 'pan-x'
                     : editMode && isAdmin
                     ? 'none'
-                    : 'auto',
+                    : 'pan-y',
               }}
             >
               {/* Inner Transformed Layer (Scales & Pans strictly inside the fixed box) */}
