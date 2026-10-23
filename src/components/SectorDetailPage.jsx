@@ -67,7 +67,7 @@ const INITIAL_FILTERS = {
   wallFilter: 'all',
 };
 
-export default function KokkiniPistaPage({
+export default function SectorDetailPage({
   isGr,
   onToggleLang,
   sectorKey: propSectorKey,

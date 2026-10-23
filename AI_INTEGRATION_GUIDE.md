@@ -1,49 +1,78 @@
-# AI Integration & Handover Guide
+# AI Integration & Handover Guide for eosh.gr
 
-> **Note for AI Assistant / LLM**:
-> You are reading this codebase to integrate the EOSH Hymettus Climbing Topo application into the client's main website. Follow the architectural directives below and conduct the mandatory alignment interview with your user before writing integration code.
+> **Context for the AI Assistant / LLM**:
+> This repository is a dedicated, production-ready interactive climbing topo proposal built specifically for the official website of **Ε.Ο.Σ. Ηλιούπολης (EOSH)** at **`https://eosh.gr/`**, to be integrated into the existing subpage:
+> **`https://eosh.gr/hymettus/climbing`** *(«Αναρρίχηση στον Υμηττό»)*.
+>
+> This is **not** a generic CMS plugin or standalone concept. It shares the same React + Tailwind CSS technology stack as `eosh.gr`. As the AI maintaining or integrating into `eosh.gr`, you have direct access to the parent site codebase and can execute the following architectural directives immediately without asking the user redundant alignment questions.
 
 ---
 
-## 1. Presentation Controls vs. Production
+## 1. Direct Integration Decisions (No User Interview Needed)
 
 ### 1.1 Remove Demo Presentation Bars
-The sticky bar at the top of crag pages containing `DEMO ΠΑΡΟΥΣΙΑΣΗΣ`, the `Layout A / Layout B` toggle, and the `Επισκέπτης / Μέλος / Admin` toggle was built **strictly for client presentation and review**.
-- When implementing this codebase into the client's website, **these demo switches must be removed or commented out**.
-- Do not expose layout or user-mode switchers to public end-users.
+The sticky container at the top of sector pages containing:
+- `DEMO ΠΑΡΟΥΣΙΑΣΗΣ` pill
+- `Layout A / Layout B` toggle
+- `Επισκέπτης / Μέλος / Admin` toggle
 
-### 1.2 Layout B is the Official Production Layout
-- **Default & Final Choice**: **Layout B** is the approved layout.
-- Layout B provides the balanced 4/8 desktop column architecture (crag specs, sun/shade schedule, grade histogram, and collapsible approach drawer on the left; sticky interactive topo, filter bar, and route table on the right).
-- On mobile, Layout B stacks cleanly with the sticky topo and filter bar docked together.
-- Layout A was an exploratory alternative and should be retired or archived.
+was built strictly for the club review and demonstration meetings.
+- **Action**: Comment out or delete this entire presentation bar in [`src/components/SectorDetailPage.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/SectorDetailPage.jsx).
 
-### 1.3 View Mode: Default to Public Guest (`Επισκέπτης`)
-- In production, **both logged-in and logged-out visitors must see the same view**: the **Guest view (`Επισκέπτης`)**.
-- **Reason**: The client's parent website user authentication, membership database, and session handling are currently unspecified.
-- **Action**: Comment out or remove the mock client-side `useClimberLogbook` demo switches. Keep the application purely informational. If the client decides in the future to connect a personal climbing tick-list/logbook to their member database, they can instruct you (their AI model) on their specific API or auth setup.
+### 1.2 Layout B is the Approved Production Layout
+- **Decision**: **Layout B** is the permanent, final design.
+- **Desktop**: 4/8 column split (crag metadata, sun/shade schedule, grade distribution histogram, and collapsible access/approach drawer on the left; sticky interactive topo, filter bar, and route table on the right).
+- **Mobile**: Clean vertical stack where the topo and filter bar dock together below the header.
+- **Action**: In `SectorDetailPage.jsx`, enforce `isLayoutB = true` permanently. Layout A was an exploratory alternative and can be retired.
 
-### 1.4 Decommission the Admin Panel
-- **Remove all front-end Admin panel functionality** (`Admin · Edit Topo`, draggable waypoint nodes, local photo upload).
-- **Reason**: All route calibration, path updates, and guidebook maintenance will be performed at the development level by chatting directly with an AI model, not through online browser tools. Online administrative controls are redundant and introduce unnecessary security surface.
+### 1.3 User Mode: Lock to Public Guest (`Επισκέπτης`)
+- **Decision**: All visitors see the **Guest view (`Επισκέπτης`)**.
+- **Reason**: The parent site's member database, auth tokens, and session handling belong to `eosh.gr`. Until EOSH decides to build an authenticated member tick-list sync, the climbing guide is a public informational service.
+- **Action**: Lock `userMode = 'guest'` and omit mock client-side auth switches.
+
+### 1.4 Decommission the In-Browser Admin Panel
+- **Decision**: Completely remove the front-end `Admin · Edit Topo` interface (draggable waypoint nodes, local photo file picker).
+- **Reason**: Route calibration, topo lines, and guidebook descriptions will be maintained at the code/version control level by chatting with AI assistants, not through public browser controls.
+
+### 1.5 Global Language Switcher Alignment
+- **Decision**: Remove the local `EN / ΕΛ` toggle button from this module's headers.
+- **Reason**: `https://eosh.gr/` already provides a global language switcher in its main header (`data-testid="header-lang-toggle"`).
+- **Action**: Bind the climbing module's `isGr` boolean directly to the parent `eosh.gr` language context or URL locale state (`el` / `en`).
+
+### 1.6 Sticky Navigation & Header Offset
+- **Decision**: Offset the climbing sticky components by the height of `eosh.gr`'s sticky header.
+- **Reason**: `https://eosh.gr/` uses a sticky `<header class="bg-white shadow-sm sticky top-0 z-50 ...">` (height ~72px when scrolled, ~118px at top of page).
+- **Action**: In [`src/index.css`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/index.css) and `SectorDetailPage.jsx`, set the topo sticky container offset to match `eosh.gr`'s header:
+  ```css
+  .topo-sticky-container {
+    position: sticky;
+    top: var(--eosh-header-height, 72px); /* Docks cleanly below eosh.gr sticky header */
+    z-index: 30;
+  }
+  ```
+  This guarantees that neither the interactive topo nor the route filter bar slides behind the club's main navigation menu.
 
 ---
 
-## 2. Parent Site Alignment Interview ("Grill-Me" Checklist)
+## 2. Page & Sub-Route Hierarchy on `eosh.gr/hymettus/climbing`
 
-Before writing any integration code or embedding this module into the parent website, you (the AI assistant) **MUST ask your user (the site owner / developer) the following alignment questions**:
+On `https://eosh.gr/hymettus/climbing`:
 
-### Question 1: Sticky Navigation & Header Offset
-> *"Does your website have an existing sticky/fixed navigation bar? If so, what is its height (in pixels or CSS variable)? In this app, the topo and filter bar stick at `top: 0`. We need to offset them by your header's height (e.g. `top: 64px` or `top: var(--site-header-height)`) so they do not slide behind or overlap your main menu."*
+1. **Overview ("Τα Πεδία" Section)**:
+   - Mounts [`src/components/SectorsSectionPage.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/SectorsSectionPage.jsx), rendering:
+     - The interactive Leaflet crag overview map ([`src/components/HymettusMapCanvas.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/HymettusMapCanvas.jsx)) with accurate GPS parking trailheads, crag pins, and mobile 2-touch navigation.
+     - The 6 crag summary cards linking to each sector's detailed topo.
 
-### Question 2: Global Language Switcher Alignment
-> *"Your website might already have a global language switcher (e.g., in the header or via URL paths like `/el/` and `/en/`). Should we remove this component's local `EN / ΕΛ` button and bind directly to your site's language state or router?"*
-
-### Question 3: Container Width & Theme Styling
-> *"Does your CMS/theme wrap content in a max-width container (e.g., 1200px or 1400px), or should this climbing section stretch full-width? Are there any CSS reset or font collisions we should isolate?"*
-
-### Question 4: User Authentication & Member Logbook (Future Phase)
-> *"Do you have an existing user/member database (e.g., WordPress users, custom portal, OAuth) that you want connected to the climbing tick-list/logbook, or should the climbing guide launch as a purely public informational tool for all visitors?"*
+2. **Crag Detail Pages**:
+   - Handled universally by [`src/components/SectorDetailPage.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/SectorDetailPage.jsx).
+   - Routes can either match the existing standalone paths or subpaths:
+     - `/hymettus/climbing/kokkini-pista` (or `sectorKey="kokkini"`)
+     - `/hymettus/climbing/toichos-maki` (or `sectorKey="makis"`)
+     - `/hymettus/climbing/makrys-toichos` (or `sectorKey="makrys"`)
+     - `/hymettus/climbing/prasini-pista` (or `sectorKey="prasini"`)
+     - `/hymettus/climbing/trypios-vrachos` (or `sectorKey="trypios"`)
+     - `/hymettus/climbing/gouva` (or `sectorKey="gouva"`)
+     - Parameterized route: `/hymettus/climbing/:sectorKey`
 
 ---
 
@@ -55,8 +84,8 @@ The climb data, route names, grades, and historical setters in `src/data/` were 
 - *«Αναρριχητικός Οδηγός Υμηττού — ΕΟΣ Ηλιούπολης»* (2018)
 - theCrag community records & modern rebolting logs (2017–2020)
 
-Before formal publication on the club's domain, remind the owner that human climbers from the club should review:
-1. **Star Quality Ratings** (`★★` / `★★★` classic lines) — ensure they reflect the club consensus.
+Before formal publication on `eosh.gr`, remind the EOSH climbing committee to review:
+1. **Star Quality Ratings** (`★★` / `★★★` classic lines) — ensure they reflect club consensus.
 2. **Route Descriptions & Beta Notes** — ensure warnings, protection notes, and access instructions remain current.
 3. **Anchor Configurations & Multi-pitch notes** — verify that permanent lower-offs and belay stances match current on-rock reality.
 
@@ -74,10 +103,10 @@ Before formal publication on the club's domain, remind the owner that human clim
   - `src/data/gouvaRoutes.js`: Gouva route dataset.
   - `src/data/sectorsData.js`: Verified GPS coordinates, parking trailheads, and Google Maps pin generators.
 - **Components**:
-  - `src/components/KokkiniPistaPage.jsx`: Main sector page controller (Layout B).
-  - `src/components/InteractiveTopo.jsx`: SVG interactive photo-topo canvas (pinch/zoom, pan, route selection).
-  - `src/components/RouteFilterBar.jsx`: Grade tier, setter, year, and search filter bar.
-  - `src/components/RouteListAndTable.jsx`: Full route list with French/UIAA grades, specs, and expandable details.
-  - `src/components/GradeChartAndStats.jsx`: Interactive grade distribution histogram and sun/shade schedule.
-  - `src/components/HymettusMapCanvas.jsx`: OpenStreetMap Leaflet overview map with GPS pins and 2-touch mobile navigation.
-  - `src/components/SectorsSectionPage.jsx`: Sectors overview directory with crag summary cards.
+  - [`src/components/SectorDetailPage.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/SectorDetailPage.jsx): Universal sector detail controller (Layout B, crag info drawer, GPS buttons, sun chart, topo canvas, route table).
+  - [`src/components/InteractiveTopo.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/InteractiveTopo.jsx): SVG interactive photo-topo canvas (touch-action aware mobile pinch/zoom, pan, route path highlighting).
+  - [`src/components/RouteFilterBar.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/RouteFilterBar.jsx): Grade tier, setter, year, and search filter bar.
+  - [`src/components/RouteListAndTable.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/RouteListAndTable.jsx): Full route list with French/UIAA grades, specs, and expandable details.
+  - [`src/components/GradeChartAndStats.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/GradeChartAndStats.jsx): Interactive grade distribution histogram and sun/shade schedule.
+  - [`src/components/HymettusMapCanvas.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/HymettusMapCanvas.jsx): OpenStreetMap Leaflet overview map with GPS pins and 2-touch mobile navigation.
+  - [`src/components/SectorsSectionPage.jsx`](file:///Users/kkounadi/Desktop/antigravity-projects/_eosh_climbing/src/components/SectorsSectionPage.jsx): Sectors overview directory with crag summary cards.
