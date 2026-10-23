@@ -12,6 +12,12 @@ import {
   Compass,
   BookOpen,
   Wrench,
+  Car,
+  Mountain,
+  Copy,
+  Check,
+  ExternalLink,
+  Footprints,
 } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
@@ -23,6 +29,11 @@ import {
   getGradeTier,
 } from '../data/kokkiniPistaRoutes';
 import { isCompletedTick } from '../hooks/useClimberLogbook';
+import {
+  sectors,
+  PARKING_TRAILHEADS,
+  getGoogleMapsPinUrl,
+} from '../data/sectorsData';
 
 // Exact seasonal & hourly sun/shade schedule from cms_b4e1305033.pdf (Page 4):
 // "Στην «ΚΟΚΚΙΝΗ ΠΙΣΤΑ» το καλοκαίρι έχει σκιά από το πρωί μέχρι τις 10.00 και από τις 11.00 και μετά μέχρι το βράδυ.
@@ -148,6 +159,51 @@ export default function GradeChartAndStats({
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
   );
   const [showCragGuideNotes, setShowCragGuideNotes] = useState(false);
+  const [copiedParkingCoords, setCopiedParkingCoords] = useState(false);
+  const [copiedCragCoords, setCopiedCragCoords] = useState(false);
+
+  const sectorMeta = useMemo(() => {
+    const k = cragInfo?.key || cragInfo?.id || 'kokkini';
+    return sectors.find((s) => s.key === k) || sectors[0];
+  }, [cragInfo]);
+
+  const parkingMeta = useMemo(() => {
+    return (
+      PARKING_TRAILHEADS[sectorMeta?.parkingId] ||
+      PARKING_TRAILHEADS.ilioupoli
+    );
+  }, [sectorMeta]);
+
+  const handleCopyParking = async () => {
+    const text = `${parkingMeta.lat}, ${parkingMeta.lng}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedParkingCoords(true);
+      setTimeout(() => setCopiedParkingCoords(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleCopyCrag = async () => {
+    const text = `${sectorMeta.lat}, ${sectorMeta.lng}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCragCoords(true);
+      setTimeout(() => setCopiedCragCoords(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  const parkingGoogleUrl = useMemo(
+    () => getGoogleMapsPinUrl(parkingMeta.lat, parkingMeta.lng, parkingMeta.nameEn),
+    [parkingMeta]
+  );
+  const cragGoogleUrl = useMemo(
+    () => getGoogleMapsPinUrl(sectorMeta.lat, sectorMeta.lng, sectorMeta.nameEn),
+    [sectorMeta]
+  );
 
   const isMemberOrAdmin = userMode === 'member' || userMode === 'admin';
   const sunStatus = useMemo(() => getHymettusSunStatus(isGr), [isGr]);
@@ -706,8 +762,8 @@ export default function GradeChartAndStats({
                   </div>
                 )}
 
-                {/* Gear & Helmet Safety Quick Note + Toggle for Full EOSH 2018 Guide Notes */}
-                <div className="text-[11px] text-gray-700 bg-amber-50/80 border border-amber-200/80 rounded-lg p-2 space-y-1.5">
+                {/* Gear & Helmet Safety Alert (Yellow warning box only) */}
+                <div className="text-[11px] text-gray-700 bg-amber-50/80 border border-amber-200/80 rounded-lg p-2">
                   <div className="flex items-start gap-1.5">
                     <ShieldAlert className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <span>
@@ -720,85 +776,213 @@ export default function GradeChartAndStats({
                         : 'Wearing a helmet is mandatory at all times for both climbers and belayers!'}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowCragGuideNotes((v) => !v)}
-                    className="w-full pt-1 border-t border-amber-200/70 flex items-center justify-between text-[11px] font-semibold text-[#1e3a8a] hover:underline"
-                  >
-                    <span>
-                      {isGr
-                        ? 'Πρόσβαση, Βράχος & Ιστορικό (Οδηγός ΕΟΣΗ 2018)'
-                        : 'Approach, Rock & History (EOSH 2018 Guide)'}
-                    </span>
-                    {showCragGuideNotes ? (
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
-                  </button>
                 </div>
+
+                {/* Normal Information Toggle Button (outside yellow warning box) */}
+                <button
+                  type="button"
+                  onClick={() => setShowCragGuideNotes((v) => !v)}
+                  className="w-full py-1.5 px-2.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#1e3a8a] transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5" />
+                    {isGr ? 'Πρόσβαση, Βράχος & Ιστορικό' : 'Approach, Rock & History'}
+                  </span>
+                  {showCragGuideNotes ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                  )}
+                </button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Expandable Authentic EOSH 2018 Crag Guide Details (from cms_b4e1305033.pdf) */}
+          {/* Expandable Crag Guide Details: Approach, Rock & History */}
           {showCragGuideNotes && (
-            <Card className="border border-blue-200/80 bg-blue-50/30">
-              <CardContent className="p-3 sm:p-4 grid sm:grid-cols-2 gap-3 text-xs text-gray-700">
-                <div className="space-y-1.5">
-                  <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                    <Compass className="w-4 h-4 text-[#1e3a8a]" />
-                    <span>
-                      {isGr ? `Πρόσβαση (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} λεπτά)` : `Approach (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} minutes)`}
-                    </span>
-                  </div>
-                  <p className="leading-relaxed">
-                    {isGr ? (cragInfo || CRAG_INFO_2018).approachGr : (cragInfo || CRAG_INFO_2018).approachEn}
+            <Card className="border border-blue-200/80 bg-blue-50/30 shadow-2xs">
+              <CardContent className="p-3.5 sm:p-4 space-y-3 text-xs text-gray-700">
+                {/* Crag Intro Description (Matching Layout B under H1) */}
+                {(cragInfo?.introGr || cragInfo?.introEn) && (
+                  <p className="text-xs sm:text-[13px] text-gray-700 leading-relaxed pb-2.5 border-b border-blue-200/60 font-medium">
+                    {isGr ? cragInfo.introGr : cragInfo.introEn}
                   </p>
-                </div>
+                )}
 
-                <div className="space-y-1.5">
-                  <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                    <ShieldAlert className="w-4 h-4 text-amber-600" />
-                    <span>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Left Column: Approach + Parking/Crag GPS Buttons + GMaps Links */}
+                  <div className="space-y-2">
+                    <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-[#1e3a8a]" />
+                      <span>
+                        {isGr
+                          ? `Πρόσβαση (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} λεπτά)`
+                          : `Approach (${(cragInfo || CRAG_INFO_2018).approachMinutes || 10} minutes)`}
+                      </span>
+                    </div>
+                    <p className="leading-relaxed">
                       {isGr
-                        ? 'Χαρακτήρας Βράχου & Ασφάλεια'
-                        : 'Rock Character & Safety'}
-                    </span>
-                  </div>
-                  <p className="leading-relaxed">
-                    {isGr
-                      ? (cragInfo || CRAG_INFO_2018).rockAndSafetyGr
-                      : (cragInfo || CRAG_INFO_2018).rockAndSafetyEn}
-                  </p>
-                </div>
+                        ? (cragInfo || CRAG_INFO_2018).approachGr
+                        : (cragInfo || CRAG_INFO_2018).approachEn}
+                    </p>
 
-                <div className="space-y-1">
-                  <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                    <Wrench className="w-3.5 h-3.5 text-[#1e3a8a]" />
-                    <span>
-                      {isGr
-                        ? 'Ανακατασκευή & Συντήρηση'
-                        : 'Rebolting & Restoration'}
-                    </span>
-                  </div>
-                  <p className="leading-relaxed text-[11px] text-gray-600">
-                    {isGr ? (cragInfo || CRAG_INFO_2018).reboltingGr : (cragInfo || CRAG_INFO_2018).reboltingEn}
-                  </p>
-                </div>
+                    {/* Action Links: Parking GPS + Google Maps, Crag GPS + Google Maps, Trail */}
+                    <div className="flex flex-col gap-1.5 pt-1">
+                      {/* Parking Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 p-2 rounded-lg bg-white border border-blue-200/80 shadow-2xs">
+                        <div className="flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                          <span className="font-semibold text-gray-800 text-[11px]">
+                            {isGr ? 'Στάθμευση:' : 'Parking:'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyParking}
+                            title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                            data-testid="copy-parking-coords-btn-layout-a"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                          >
+                            {copiedParkingCoords ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                  {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 text-gray-500" />
+                                <span>
+                                  {parkingMeta.lat.toFixed(3)}, {parkingMeta.lng.toFixed(3)}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
 
-                <div className="space-y-1">
-                  <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-[#1e3a8a]" />
-                    <span>
-                      {isGr ? 'Ιστορικοί Οδηγοί' : 'Historical Guidebooks'}
-                    </span>
+                        <a
+                          href={parkingGoogleUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="parking-gmaps-link-layout-a"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                        >
+                          <span>Google Maps</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      </div>
+
+                      {/* Actual Crag Coordinates Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 p-2 rounded-lg bg-white border border-blue-200/80 shadow-2xs">
+                        <div className="flex items-center gap-1.5">
+                          <Mountain className="w-3.5 h-3.5 text-[#1e3a8a] shrink-0" />
+                          <span className="font-semibold text-gray-800 text-[11px]">
+                            {isGr ? 'Βράχος:' : 'Crag:'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleCopyCrag}
+                            title={isGr ? 'Αντιγραφή συντεταγμένων GPS' : 'Copy GPS coordinates'}
+                            data-testid="copy-crag-coords-btn-layout-a"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-700 font-mono text-[11px] transition-colors"
+                          >
+                            {copiedCragCoords ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700 font-sans font-bold text-[10px]">
+                                  {isGr ? 'Αντιγράφηκε' : 'Copied'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 text-gray-500" />
+                                <span>
+                                  {sectorMeta.lat.toFixed(3)}, {sectorMeta.lng.toFixed(3)}
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <a
+                          href={cragGoogleUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="crag-gmaps-link-layout-a"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1e3a8a] hover:text-[#1e3a8a]/80 transition-colors"
+                        >
+                          <span>Google Maps</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      </div>
+
+                      {/* Monopati Line (No mention of Wikiloc) */}
+                      {cragInfo?.wikilocUrl && (
+                        <a
+                          href={cragInfo.wikilocUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-testid="crag-trail-link-layout-a"
+                          className="inline-flex items-center justify-between gap-2 p-2 rounded-lg bg-white hover:bg-[#1e3a8a]/5 border border-blue-200/80 text-gray-800 hover:text-[#1e3a8a] font-semibold text-[11px] transition-colors shadow-2xs"
+                        >
+                          <span className="inline-flex items-center gap-1.5">
+                            <Footprints className="w-3.5 h-3.5 text-amber-700" />
+                            {isGr ? 'Μονοπάτι' : 'Trail'}
+                          </span>
+                          <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <p className="leading-relaxed text-[11px] text-gray-600">
-                    {isGr
-                      ? (cragInfo || CRAG_INFO_2018).guidebooksGr
-                      : (cragInfo || CRAG_INFO_2018).guidebooksEn}
-                  </p>
+
+                  {/* Right Column: Rock Character, Rebolting, Guidebooks */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4 text-amber-600" />
+                        <span>
+                          {isGr
+                            ? 'Χαρακτήρας Βράχου & Ασφάλεια'
+                            : 'Rock Character & Safety'}
+                        </span>
+                      </div>
+                      <p className="leading-relaxed">
+                        {isGr
+                          ? (cragInfo || CRAG_INFO_2018).rockAndSafetyGr
+                          : (cragInfo || CRAG_INFO_2018).rockAndSafetyEn}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                        <Wrench className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                        <span>
+                          {isGr
+                            ? 'Ανακατασκευή & Συντήρηση'
+                            : 'Rebolting & Restoration'}
+                        </span>
+                      </div>
+                      <p className="leading-relaxed text-[11px] text-gray-600">
+                        {isGr
+                          ? (cragInfo || CRAG_INFO_2018).reboltingGr
+                          : (cragInfo || CRAG_INFO_2018).reboltingEn}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="font-bold text-gray-900 flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5 text-[#1e3a8a]" />
+                        <span>
+                          {isGr ? 'Ιστορικοί Οδηγοί' : 'Historical Guidebooks'}
+                        </span>
+                      </div>
+                      <p className="leading-relaxed text-[11px] text-gray-600">
+                        {isGr
+                          ? (cragInfo || CRAG_INFO_2018).guidebooksGr
+                          : (cragInfo || CRAG_INFO_2018).guidebooksEn}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

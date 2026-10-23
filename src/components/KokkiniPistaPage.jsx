@@ -1135,39 +1135,22 @@ export default function KokkiniPistaPage({
              ============================================================================ */
           <>
             {/* Compact Sector Header */}
-            <div className="mb-2.5 sm:mb-3.5 flex flex-wrap items-baseline justify-between gap-2">
-              <div>
-                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                  <Badge variant="outline" className="text-[11px] bg-white">
-                    <MapPin className="w-3 h-3 mr-1 text-[#1e3a8a]" />
-                    {isGr ? crag.areaGr || 'Ηλιούπολη' : crag.areaEn || 'Ilioupoli'}
-                  </Badge>
-                  <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] text-[11px]">
-                    {isGr
-                      ? `${cragCounts.total} διαδρομές`
-                      : `${cragCounts.total} routes`}
-                  </Badge>
-                  <span className="text-xs text-gray-600 inline-flex items-center gap-1 font-medium">
-                    <Mountain className="w-3.5 h-3.5 text-[#1e3a8a]" /> {cragInfo.gradeSpan || '5a–7a'}
-                  </span>
-                  <span className="hidden sm:inline-flex text-xs text-gray-600 items-center gap-1 font-medium">
-                    <Sun className="w-3.5 h-3.5 text-amber-500" />
-                    {isGr
-                      ? (cragInfo.shadeGr || 'Σκιά έως 10:00 & 11:00–βράδυ (Χειμώνας: όλη μέρα)')
-                      : (cragInfo.shadeEn || 'Shade <10:00 & 11:00–dusk (Winter: all day)')}
-                  </span>
-                </div>
-
-                <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
-                  {isGr ? crag.nameGr || 'Κόκκινη Πίστα' : crag.nameEn || 'Red Crag (Kokkini Pista)'}
-                </h1>
+            <div className="mb-2.5 sm:mb-3.5">
+              <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                <Badge variant="outline" className="text-[11px] bg-white">
+                  <MapPin className="w-3 h-3 mr-1 text-[#1e3a8a]" />
+                  {isGr ? crag.areaGr || 'Ηλιούπολη' : crag.areaEn || 'Ilioupoli'}
+                </Badge>
+                <Badge className="bg-[#1e3a8a]/10 text-[#1e3a8a] text-[11px]">
+                  {isGr
+                    ? `${cragCounts.total} διαδρομές`
+                    : `${cragCounts.total} routes`}
+                </Badge>
               </div>
 
-              <p className="hidden md:block text-xs text-gray-500 max-w-md text-right">
-                {isGr
-                  ? (cragInfo.restorationShortGr || cragInfo.reboltingGr)
-                  : (cragInfo.restorationShortEn || cragInfo.reboltingEn)}
-              </p>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
+                {isGr ? crag.nameGr || 'Κόκκινη Πίστα' : crag.nameEn || 'Red Crag (Kokkini Pista)'}
+              </h1>
             </div>
 
             <div

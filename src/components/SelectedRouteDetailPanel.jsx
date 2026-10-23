@@ -90,43 +90,6 @@ export default function SelectedRouteDetailPanel({
               </p>
             </div>
           </div>
-
-          {/* Quick Crag Overview Badges */}
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 text-[11px]">
-            <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
-              <span className="font-semibold text-gray-500 block">
-                {isGr ? 'Διαδρομές' : 'Routes'}
-              </span>
-              <span className="font-bold text-gray-900">
-                {routes ? routes.length : 40}{' '}
-                {isGr
-                  ? `(${routes ? routes.filter((r) => !r.isTopRopeOnly).length : 37} Sport · ${routes ? routes.filter((r) => r.isTopRopeOnly).length : 3} TR*)`
-                  : `(${routes ? routes.filter((r) => !r.isTopRopeOnly).length : 37} Sport · ${routes ? routes.filter((r) => r.isTopRopeOnly).length : 3} TR*)`}
-              </span>
-            </div>
-            <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
-              <span className="font-semibold text-gray-500 block">
-                {isGr ? 'Βαθμολογίες' : 'Grades'}
-              </span>
-              <span className="font-bold text-gray-900">
-                {cragInfo?.gradeSpan || (isGr ? cragInfo?.gradesGr : cragInfo?.gradesEn) || '5a – 7a'}
-              </span>
-            </div>
-            <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
-              <span className="font-semibold text-gray-500 block">
-                {isGr ? 'Ανάπτυγμα' : 'Length'}
-              </span>
-              <span className="font-bold text-gray-900">
-                {cragInfo?.height || (isGr ? cragInfo?.heightGr : cragInfo?.heightEn) || '8m – 13m'}
-              </span>
-            </div>
-            <div className="p-2 rounded-md bg-gray-50 border border-gray-100">
-              <span className="font-semibold text-gray-500 block">
-                {isGr ? 'Ασφάλιση' : 'Protection'}
-              </span>
-              <span className="font-bold text-[#1e3a8a]">Inox 316L UIAA</span>
-            </div>
-          </div>
         </CardContent>
       </Card>
     );
