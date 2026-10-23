@@ -16,7 +16,7 @@ export default function App() {
       <Routes>
         <Route
           path="/"
-          element={<Navigate to="/kokkini-pista" replace />}
+          element={<Navigate to="/sectors" replace />}
         />
         <Route
           path="/sectors"
@@ -49,6 +49,10 @@ export default function App() {
         <Route
           path="/sector/:sectorKey"
           element={<KokkiniPistaPage isGr={isGr} onToggleLang={toggleLang} />}
+        />
+        <Route
+          path="*"
+          element={<Navigate to="/sectors" replace />}
         />
       </Routes>
     </HashRouter>
