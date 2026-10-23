@@ -1,7 +1,25 @@
-import React, { useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SectorsSectionPage from './components/SectorsSectionPage';
 import KokkiniPistaPage from './components/KokkiniPistaPage';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Reset window scroll when navigating between distinct pages/sectors
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const rafId = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [pathname]);
+
+  return null;
+}
 
 export default function App() {
   const [lang, setLang] = useState('gr');
@@ -13,6 +31,7 @@ export default function App() {
 
   return (
     <HashRouter>
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"
