@@ -560,6 +560,17 @@ export default function KokkiniPistaPage({
 
           {/* Right Side: Temporary Presentation Controls (1.C + Layout Switcher) + (1.D in Layout A) + 1.E Language */}
           <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+            {/* =========================================================================
+                AI INTEGRATION DIRECTIVE:
+                The following demo control cluster ("DEMO ΠΑΡΟΥΣΙΑΣΗΣ", Layout A/B switcher,
+                and Guest/Member/Admin switcher) is strictly for presentation review.
+                When integrating this app into the client's production website:
+                1. Comment out or delete this entire demo toolbar block.
+                2. Default layout is permanently locked to Layout B (`isLayoutB = true`).
+                3. Default user mode is Guest ('guest') unless the client connects their auth system.
+                4. The Admin panel is decommissioned (route editing is done in dev chat with AI).
+                See `AI_INTEGRATION_GUIDE.md` for complete handover instructions.
+                ========================================================================= */}
             {/* 1.C Temporary Presentation Container (for Club Presentation) */}
             <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50/70 border border-dashed border-amber-300/90 px-1.5 py-0.5">
               <span
